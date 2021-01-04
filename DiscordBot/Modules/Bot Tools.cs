@@ -38,7 +38,7 @@ public class Bot_Tools : InteractiveBase
         {
            await Context.Message.DeleteAsync();
             var msg = await ReplyAsync("Alright give me few seconds please.");
-            if (!((bool)server.CheckAuth(Context.Guild.Id, token) == true))
+            if (!((bool)server.CheckAuth(token, Context.Guild.Id) == true))
             {
                 //sorting the token goes here
                 //After connection if server replies, then its ok
