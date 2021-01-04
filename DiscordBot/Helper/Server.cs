@@ -149,13 +149,14 @@ public class Server
                 }
             }
         }
-    public object CheckOnhold(string token)
+    public object CheckOnhold(string token,string ip)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            string insert = "SELECT * FROM Onhold WHERE Token=@token";
+            string insert = "SELECT * FROM Onhold WHERE Token=@token OR IP = @ip";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@token", token);
+            cmd.Parameters.AddWithValue("@ip", token);
             sqlconn.Open();
             using (var reader = cmd.ExecuteReader())
             {
