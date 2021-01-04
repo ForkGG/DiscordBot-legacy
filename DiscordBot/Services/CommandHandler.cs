@@ -33,18 +33,22 @@ using Discord.WebSocket;
             Client.UserJoined += welcome;
             Client.MessageReceived += HandleCommandAsync;
             Client.MessagesBulkDeleted += BulkDeleteAsync;
-        }
-
-        private async Task BulkDeleteAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
+        Client.JoinedGuild += Joinedguild;
+    }
+    private async Task Joinedguild(SocketGuild guild)
+    {
+        var ebd = new EmbedBuilder();
+        ebd.Color = Color.Green;
+        ebd.WithCurrentTimestamp();
+        ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
+        ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token] to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
+        ebd.WithFooter("Fork is a freemium Minecraft server management.");
+        await guild.DefaultChannel.SendMessageAsync(null, false, ebd.Build());
+    }
+    private async Task BulkDeleteAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
         {
             await Task.CompletedTask;
         }
-
-        private Thread VideoChecker;
-        private bool videocheckerisalive = false;
-        public static string[] channels = new[] { "UC-kr_jsKIWUpfdAZFsoIK8w", "UCyfy4GrHqM0VfIVLRPSYhlQ" };
-        public bool first = false;
-        public bool second = false;
 
         public async Task ready()
         {
@@ -55,6 +59,7 @@ using Discord.WebSocket;
             }
             catch (Exception ex)
             {
+
             }
         }
 
