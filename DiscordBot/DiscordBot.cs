@@ -49,7 +49,15 @@ using Microsoft.Extensions.DependencyInjection;
             socket.OnOpen = () =>
             {
                 Console.WriteLine("Open!");
-                allSockets.Add(socket);
+                if (allSockets.Any(client => client.ConnectionInfo.ClientIpAddress == socket.ConnectionInfo.ClientIpAddress))
+                {
+                    socket.Close(); //Little security, dont let same ip to connect twice
+                }
+                else
+                {
+                    allSockets.Add(socket);
+                }
+               
             };
             socket.OnClose = () =>
             {
