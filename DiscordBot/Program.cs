@@ -10,7 +10,7 @@ using System.Net;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(@"
-Fork Bot Starting
+Fork Bot is starting
 ---------------------------------------------------------------");
             Console.WriteLine();
             Fork_Bot.StartAsync().GetAwaiter().GetResult();
