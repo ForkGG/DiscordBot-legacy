@@ -9,6 +9,7 @@ using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using Fleck;
+using log4net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +24,25 @@ using Microsoft.Extensions.DependencyInjection;
 
         private async Task RunAsync()
         {
-        FleckLog.Level = LogLevel.Debug;
+        ILog logger = LogManager.GetLogger(typeof(FleckLog));
+
+        FleckLog.LogAction = (level, message, ex) => {
+            switch (level)
+            {
+                case LogLevel.Debug:
+                    logger.Debug(message, ex);
+                    break;
+                case LogLevel.Error:
+                    logger.Error(message, ex);
+                    break;
+                case LogLevel.Warn:
+                    logger.Warn(message, ex);
+                    break;
+                default:
+                    logger.Info(message, ex);
+                    break;
+            }
+        };
         var server = new WebSocketServer("ws://0.0.0.0:8181");
         server.Start(socket =>
         {
@@ -40,7 +59,7 @@ using Microsoft.Extensions.DependencyInjection;
             socket.OnMessage = message =>
             {
                 Console.WriteLine(message);
-                allSockets.ToList().ForEach(s => s.Send(s.ConnectionInfo.Id.ToString()));
+                allSockets.ToList().ForEach(s => s.Send(message));
              
             };
         });
