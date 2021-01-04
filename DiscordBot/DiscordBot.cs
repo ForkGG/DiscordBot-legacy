@@ -73,7 +73,7 @@ using Microsoft.Extensions.DependencyInjection;
                 {
                     case "login":
                         string token = codes[1];
-                        if ((!(bool)serverr.CheckAuth(token) == true) && !(bool)serverr.CheckOnhold(token) == true)  
+                        if ((!(bool)serverr.CheckAuth(token) == true) && !(bool)serverr.CheckOnhold(token,socket.ConnectionInfo.ClientIpAddress) == true)  
                         {
                             serverr.InsertOnhold(token, socket.ConnectionInfo.ClientIpAddress);
                             Console.WriteLine("Token: " + token + $" IP: {socket.ConnectionInfo.ClientIpAddress} Added to onhold list");
