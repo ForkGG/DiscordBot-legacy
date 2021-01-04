@@ -37,7 +37,7 @@ public class Bot_Tools : InteractiveBase
             if (!((bool)server.CheckAuth(Context.Guild.Id, token) == false))
             {
                 // TO-DO check if token is correct
-                //
+             
                 server.InsertAuth(Context.Guild.Id, token);
                 await msg.ModifyAsync(msgProperty => msgProperty.Content = "Great, your discord server is now authorized with your fork server.");
             }
