@@ -16,6 +16,7 @@ using Discord.WebSocket;
 
     public class CommandHandler
     {
+    public Server server = new Server();
         private readonly DiscordSocketClient Client;
         private readonly IServiceProvider Services;
 
@@ -35,15 +36,52 @@ using Discord.WebSocket;
             Client.MessagesBulkDeleted += BulkDeleteAsync;
         Client.JoinedGuild += Joinedguild;
     }
+    public static OverwritePermissions AdminPermissions()
+    {
+        return new OverwritePermissions(PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Allow, PermValue.Deny, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny);
+    }
+    public static OverwritePermissions None()
+    {
+        return new OverwritePermissions(PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny,
+                                        PermValue.Deny);
+    }
     private async Task Joinedguild(SocketGuild guild)
     {
-        var ebd = new EmbedBuilder();
-        ebd.Color = Color.Green;
-        ebd.WithCurrentTimestamp();
-        ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
-        ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token] to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
-        ebd.WithFooter("Fork is a freemium Minecraft server management.");
-        await guild.DefaultChannel.SendMessageAsync(null, false, ebd.Build());
+        if (!((bool)server.CheckAuth("None",guild.Id) == true))
+        {
+            ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
+            GuildPermissions perms = new GuildPermissions(origin);
+            var guildd = await guild.CreateRoleAsync("Fork-Mods", perms,null,false,false,null);
+            var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
+            await vChan.AddPermissionOverwriteAsync(guildd, AdminPermissions());
+            await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, None());
+            var ebd = new EmbedBuilder();
+            ebd.Color = Color.Green;
+            ebd.WithCurrentTimestamp();
+            ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
+            ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
+            ebd.WithFooter("Fork is a freemium Minecraft server management.");
+            var ownerr = Client.GetGuild(guild.Id).OwnerId;
+            await vChan.SendMessageAsync($"<@{ownerr}>", false, ebd.Build());
+        }
     }
     private async Task BulkDeleteAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
         {
