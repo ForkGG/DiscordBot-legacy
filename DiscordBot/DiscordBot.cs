@@ -1,24 +1,52 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
+using Fleck;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 
-    public class Fork_Bot
+    public class Discord_Bot
     {
-        public static async Task StartAsync()
+    public static List<IWebSocketConnection> allSockets { get; set; } = new List<IWebSocketConnection>();
+    public static async Task StartAsync()
         {
-            await new Fork_Bot().RunAsync();
+            await new Discord_Bot().RunAsync();
         }
 
         private async Task RunAsync()
         {
-            var config = BuildConfig();
+        FleckLog.Level = LogLevel.Debug;
+        var server = new WebSocketServer("ws://0.0.0.0:8181");
+        server.Start(socket =>
+        {
+            socket.OnOpen = () =>
+            {
+                Console.WriteLine("Open!");
+                allSockets.Add(socket);
+            };
+            socket.OnClose = () =>
+            {
+                Console.WriteLine("Close!");
+                allSockets.Remove(socket);
+            };
+            socket.OnMessage = message =>
+            {
+                Console.WriteLine(message);
+                allSockets.ToList().ForEach(s => s.Send(message));
+            };
+        });
+
+
+       
+        var config = BuildConfig();
             using (var services = ConfigureServices())
             {
                 var client = services.GetRequiredService<DiscordSocketClient>();
@@ -28,6 +56,15 @@ using Microsoft.Extensions.DependencyInjection;
                 await services.GetRequiredService<CommandHandler>().InitializeAsync();
                 await Task.Delay(Timeout.Infinite);
             }
+             var input = Console.ReadLine();
+        while (input != "exit")
+        {
+            foreach (var socket in allSockets.ToList())
+            {
+                socket.Send(input);
+            }
+            input = Console.ReadLine();
+        }
         }
 
         private IConfiguration BuildConfig()

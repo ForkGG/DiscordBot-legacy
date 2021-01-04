@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord.Addons.Interactive;
 using Discord.Commands;
+using Fleck;
 using Websocket.Client;
 
 public class Bot_Tools : InteractiveBase
@@ -40,16 +42,8 @@ public class Bot_Tools : InteractiveBase
             {
                 //sorting the token goes here
                 //After connection if server replies, then its ok
-                var url = new Uri("ws://localhost:8181");
-                var exitEvent = new ManualResetEvent(false);
+               // Checkmsg(token); //check if its in connection
 
-                using (var client = new WebsocketClient(url))
-                {
-                    client.MessageReceived.Subscribe(msgg => Checkmsg(msgg.Text));
-                    await client.Start();
-                 client.Send("Hi");
-                 client.Dispose(); 
-                }
                 if ((bool)check == true)
                 {
                     server.InsertAuth(Context.Guild.Id, token);
@@ -71,12 +65,14 @@ public class Bot_Tools : InteractiveBase
             Console.WriteLine(ex.ToString());
         }
     }
-    private void Checkmsg(string msgg)
+    private void Checkmsg(Guid msgg)
     {
-        if(msgg.Contains("Alive"))
-        {
-            check = true;
-        }
+        // Need Better solution
+        //IWebSocketConnection I = (IWebSocketConnection)Discord_Bot.allSockets.Where(x => x.ConnectionInfo.Id == msgg);
+        //if (Discord_Bot.allSockets.Where(x => x.ConnectionInfo.Id == msgg).ToList().ForEach(s => s.Send("Hi")))
+        //{
+        //    check = true;
+        //}
     }
     [Command("unauth", RunMode = RunMode.Async)]
     [Alias("unauthorize")]

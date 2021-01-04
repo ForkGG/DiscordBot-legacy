@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Fleck;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 
 
@@ -6,13 +9,13 @@ using System.Net;
     {
         public static void Main()
         {
-            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(@"
 Fork Bot is starting
 ---------------------------------------------------------------");
-            Console.WriteLine();
+        Console.WriteLine();
             Fork_Bot.StartAsync().GetAwaiter().GetResult();
+
         }
     }
