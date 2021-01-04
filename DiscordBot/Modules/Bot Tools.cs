@@ -64,7 +64,7 @@ public class Bot_Tools : InteractiveBase
             {
                 await msg.ModifyAsync(msgProperty => msgProperty.Content = "Sorry, but this discord server or the token is already authorized.");
             }
-           
+          
         }
         catch (Exception ex)
         {
