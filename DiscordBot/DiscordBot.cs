@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 
     public class Discord_Bot
     {
+    public Server serverr = new Server();
     public static List<IWebSocketConnection> allSockets { get; set; } = new List<IWebSocketConnection>();
     public static async Task StartAsync()
         {
@@ -66,8 +68,22 @@ using Microsoft.Extensions.DependencyInjection;
             };
             socket.OnMessage = message =>
             {
-                Console.WriteLine(message);
-                allSockets.ToList().ForEach(s => s.Send(message));
+                string[] codes = (message).Split('|');
+                switch (codes[0])
+                {
+                    case "login":
+                        string token = codes[1];
+                        if ((!(bool)serverr.CheckAuth(token) == true) && !(bool)serverr.CheckOnhold(token) == true)  
+                        {
+                            serverr.InsertOnhold(token, socket.ConnectionInfo.ClientIpAddress);
+                            Console.WriteLine("Token: " + token + $" IP: {socket.ConnectionInfo.ClientIpAddress} Added to onhold list");
+                        }
+                        break;
+                }
+
+                //Console.WriteLine(message);
+
+                //allSockets.ToList().ForEach(s => s.Send(message));
              
             };
         });
