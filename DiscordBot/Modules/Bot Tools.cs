@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord.Addons.Interactive;
 using Discord.Commands;
-
+using Websocket.Client;
 
 public class Bot_Tools : InteractiveBase
     {
@@ -25,6 +26,7 @@ public class Bot_Tools : InteractiveBase
           
             }
         }
+    public bool check = false;
     [Command("auth", RunMode = RunMode.Async)]
     [Alias("authorize")]
     [Summary("Authorizes your discord server with fork mc server")]
@@ -34,12 +36,29 @@ public class Bot_Tools : InteractiveBase
         {
            await Context.Message.DeleteAsync();
             var msg = await ReplyAsync("Alright give me few seconds please.");
-            if (!((bool)server.CheckAuth(Context.Guild.Id, token) == false))
+            if (!((bool)server.CheckAuth(Context.Guild.Id, token) == true))
             {
-                // TO-DO check if token is correct
-             
-                server.InsertAuth(Context.Guild.Id, token);
-                await msg.ModifyAsync(msgProperty => msgProperty.Content = "Great, your discord server is now authorized with your fork server.");
+                //sorting the token goes here
+                //After connection if server replies, then its ok
+                var url = new Uri("ws://localhost:8181");
+                var exitEvent = new ManualResetEvent(false);
+
+                using (var client = new WebsocketClient(url))
+                {
+                    client.MessageReceived.Subscribe(msgg => Checkmsg(msgg.Text));
+                    await client.Start();
+                 client.Send("Hi");
+                 client.Dispose(); 
+                }
+                if ((bool)check == true)
+                {
+                    server.InsertAuth(Context.Guild.Id, token);
+                    await msg.ModifyAsync(msgProperty => msgProperty.Content = "Great, your discord server is now authorized with your fork server.");
+                }
+                else
+                {
+                    await msg.ModifyAsync(msgProperty => msgProperty.Content = "Couldn't Connect To Your Fork Server, make sure its running.");
+                }
             }
             else
             {
@@ -49,7 +68,30 @@ public class Bot_Tools : InteractiveBase
         }
         catch (Exception ex)
         {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    private void Checkmsg(string msgg)
+    {
+        if(msgg.Contains("Alive"))
+        {
+            check = true;
+        }
+    }
+    [Command("unauth", RunMode = RunMode.Async)]
+    [Alias("unauthorize")]
+    [Summary("Unauthorizes your discord server with fork mc server")]
+    public async Task unauth(string token)
+    {
+        try
+        {
+           // TODO
 
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
         }
     }
 }

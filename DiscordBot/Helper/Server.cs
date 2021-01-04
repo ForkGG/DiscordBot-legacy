@@ -127,14 +127,14 @@ using System.Data.SQLite;
             return null;
         }
 
-        public object checkiflivesame(string videoid, bool value)
+        public object CheckAuth(ulong serverid, string token)
         {
             using (var sqlconn = new SQLiteConnection(connectionstr))
             {
-                string insert = "SELECT * FROM YTLives WHERE URL=@url AND Posted=@posted";
+                string insert = "SELECT * FROM Auth WHERE Serverid=@serverid OR Token=@token";
                 var cmd = new SQLiteCommand(insert, sqlconn);
-                cmd.Parameters.AddWithValue("@url", videoid);
-                cmd.Parameters.AddWithValue("@posted", value.ToString());
+                cmd.Parameters.AddWithValue("@serverid", serverid);
+                cmd.Parameters.AddWithValue("@token", token);
                 sqlconn.Open();
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -148,11 +148,21 @@ using System.Data.SQLite;
                     }
                 }
             }
-
-            return null;
         }
+    public void InsertAuth(ulong serverid, string token)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "INSERT INTO Auth(Serverid,Token) VALUES (@serverid,@token)";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            cmd.Parameters.AddWithValue("@token", token);
+            sqlconn.Open();
+            cmd.ExecuteNonQuery();
+        }
+    }
 
-        public void insertvideoid(string videoid, bool value)
+    public void Check(string videoid, bool value)
         {
             using (var sqlconn = new SQLiteConnection(connectionstr))
             {
