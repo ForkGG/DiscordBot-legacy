@@ -65,14 +65,15 @@ public class Bot_Tools : InteractiveBase
             Console.WriteLine(ex.ToString());
         }
     }
-    private void Checkmsg(Guid msgg)
+    private void CheckConnection(string msgg)
     {
-        // Need Better solution
-        //IWebSocketConnection I = (IWebSocketConnection)Discord_Bot.allSockets.Where(x => x.ConnectionInfo.Id == msgg);
-        //if (Discord_Bot.allSockets.Where(x => x.ConnectionInfo.Id == msgg).ToList().ForEach(s => s.Send("Hi")))
-        //{
-        //    check = true;
-        //}
+ 
+      //var socket = Discord_Bot.allSockets.Any(client => client.ConnectionInfo.ClientIpAddress == "");
+
+        if (Discord_Bot.allSockets.Any(client => client.ConnectionInfo.ClientIpAddress == ""))
+        {
+            check = true;
+        }
     }
     [Command("unauth", RunMode = RunMode.Async)]
     [Alias("unauthorize")]
