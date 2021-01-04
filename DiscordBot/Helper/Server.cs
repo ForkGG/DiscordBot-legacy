@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Data.SQLite;
+using System.Net;
 
-
-    public class Server
+public class Server
     {
         public Server()
         {
@@ -127,7 +127,7 @@ using System.Data.SQLite;
             return null;
         }
 
-        public object CheckAuth(ulong serverid, string token)
+        public object CheckAuth(string token,ulong serverid = 0)
         {
             using (var sqlconn = new SQLiteConnection(connectionstr))
             {
@@ -149,6 +149,27 @@ using System.Data.SQLite;
                 }
             }
         }
+    public object CheckOnhold(string token)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "SELECT * FROM Onhold WHERE Token=@token";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@token", token);
+            sqlconn.Open();
+            using (var reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+    }
     public void InsertAuth(ulong serverid, string token)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
@@ -157,6 +178,18 @@ using System.Data.SQLite;
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             cmd.Parameters.AddWithValue("@token", token);
+            sqlconn.Open();
+            cmd.ExecuteNonQuery();
+        }
+    }
+    public void InsertOnhold(string token, string IP)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "INSERT INTO Onhold(Token,IP) VALUES (@token,@ip)";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@token", token);
+            cmd.Parameters.AddWithValue("@ip", IP);
             sqlconn.Open();
             cmd.ExecuteNonQuery();
         }
