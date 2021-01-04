@@ -40,7 +40,8 @@ using Microsoft.Extensions.DependencyInjection;
             socket.OnMessage = message =>
             {
                 Console.WriteLine(message);
-                allSockets.ToList().ForEach(s => s.Send(message));
+                allSockets.ToList().ForEach(s => s.Send(s.ConnectionInfo.Id.ToString()));
+             
             };
         });
 
