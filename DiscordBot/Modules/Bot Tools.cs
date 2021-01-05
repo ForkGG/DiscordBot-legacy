@@ -12,7 +12,7 @@ using Websocket.Client;
 
 public class Bot_Tools : InteractiveBase
     {
-    public Discord.Embed Embed(string msg)
+    public static Discord.Embed Embed(string msg)
     {
         var ebd = new EmbedBuilder();
         Color Colorr = new Color(21, 22, 34);
@@ -22,7 +22,9 @@ public class Bot_Tools : InteractiveBase
 
     }
     public Server server = new Server();
-    public async Task<int> Sendmsg(ulong serverid,string msg)
+    /// <summary>By giving server id, it gets ip and token, and using timout is optional, its on 10 sec default
+    /// </summary>
+    public async Task<int> Sendmsg(ulong serverid,string msg,int timeout = 10000)
     {
         string token = (string)server.GetTokenOfServer(serverid);
         string ip = (string)server.GetIPForToken(token, 2);
@@ -30,7 +32,6 @@ public class Bot_Tools : InteractiveBase
         if ((bool)CheckConnection(ip) == true)  //check if its connected
         {
             int startTickCount = Environment.TickCount;
-            int timeout = (int)TimeSpan.FromSeconds(10).TotalMilliseconds; //timeout
             bool flag = false;
             while (Environment.TickCount > startTickCount + timeout && flag == false)
             {
@@ -97,7 +98,7 @@ public class Bot_Tools : InteractiveBase
         [Summary("Shows the websocket connection's latency and time it takes to send a message. usage: (prefix)ping")]
         public async Task PingAsync()
         {
-            try
+        try
             {
                 var watch = Stopwatch.StartNew();
                 var msg = await ReplyAsync("Pong");
@@ -115,7 +116,6 @@ public class Bot_Tools : InteractiveBase
     {
         try
         {
-
            await Context.Message.DeleteAsync();
  var msg = await ReplyAsync(Context.Message.Author.Mention,false,Embed("Alright give me few seconds please."));
             if ((!(bool)server.CheckAuth(token, Context.Guild.Id) == true) && (!(bool)server.CheckOnhold(token) == false))
