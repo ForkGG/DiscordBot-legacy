@@ -15,18 +15,6 @@ public class Server
         private string fullpath;
         public string connectionstr;
 
-        public void UpdateVideo(string Videoid, bool Value)
-        {
-            using (var sqlconn = new SQLiteConnection(connectionstr))
-            {
-                string insert = "UPDATE YTVideos SET Posted=@posted WHERE URL=@url";
-                var cmd = new SQLiteCommand(insert, sqlconn);
-                cmd.Parameters.AddWithValue("@url", Videoid);
-                cmd.Parameters.AddWithValue("@Posted", Value.ToString());
-                sqlconn.Open();
-                cmd.ExecuteNonQuery();
-            }
-        }
 
         public void UpdateLive(string Videoid, bool Value)
         {
@@ -41,42 +29,6 @@ public class Server
             }
         }
 
-        public void removeexpiredorder(long serverid, long orderid)
-        {
-            using (var sqlconn = new SQLiteConnection(connectionstr))
-            {
-                string insert = "DELETE FROM OrdersList WHERE Serverid=@serverid AND orderpostid = @orderpostid";
-                var cmd = new SQLiteCommand(insert, sqlconn);
-                cmd.Parameters.AddWithValue("@serverid", serverid);
-                cmd.Parameters.AddWithValue("@orderpostid", orderid);
-                sqlconn.Open();
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        public object checkifidexist(string videoid)
-        {
-            using (var sqlconn = new SQLiteConnection(connectionstr))
-            {
-                string insert = "SELECT * FROM YTVideos WHERE URL=@url";
-                var cmd = new SQLiteCommand(insert, sqlconn);
-                cmd.Parameters.AddWithValue("@url", videoid);
-                sqlconn.Open();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    if (reader.HasRows)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return null;
-        }
     public void RemoveOnhold(string token)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
@@ -145,6 +97,29 @@ public class Server
             cmd.ExecuteNonQuery();
         }
     }
+    public void InsertRole(ulong serverid, ulong roleid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "INSERT INTO Role(Serverid,Roleid) VALUES (@serverid,@roleid)";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            cmd.Parameters.AddWithValue("@roleid", roleid);
+            sqlconn.Open();
+            cmd.ExecuteNonQuery();
+        }
+    }
+    public void RemoveRole(ulong serverid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "DELETE FROM Role WHERE Serverid = @serverid";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            sqlconn.Open();
+            cmd.ExecuteNonQuery();
+        }
+    }
     public object GetIPForToken(string token)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
@@ -165,6 +140,25 @@ public class Server
             }
         }
         return null;
+    }
+    public object GetRole(ulong Serverid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "SELECT * FROM Role WHERE Serverid=@Serverid";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@Serverid", Serverid);
+            sqlconn.Open();
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    return reader["Roleid"];
+                }
+
+            }
+        }
+        return 0;
     }
     public void InsertOnhold(string token, string IP)
     {
@@ -190,15 +184,15 @@ public class Server
                 cmd.ExecuteNonQuery();
             }
         }
-
-        public void removereports()
+    public void RemoveAuth(ulong serverid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            using (var sqlconn = new SQLiteConnection(connectionstr))
-            {
-                string insert = "DELETE FROM Reports";
-                var cmd = new SQLiteCommand(insert, sqlconn);
-                sqlconn.Open();
-                cmd.ExecuteNonQuery();
-            }
+            string insert = "DELETE FROM Auth WHERE Serverid = @serverid";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            sqlconn.Open();
+            cmd.ExecuteNonQuery();
         }
+    }
     }

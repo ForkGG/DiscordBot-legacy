@@ -76,14 +76,22 @@ public class Bot_Tools : InteractiveBase
     [Command("unauth", RunMode = RunMode.Async)]
     [Alias("unauthorize")]
     [Summary("Unauthorizes your discord server with fork mc server")]
-    public async Task unauth(string token)
+    public async Task unauth()
     {
         try
         {
-           // TODO
-
-
-        }
+            var msg = await ReplyAsync("Alright give me few seconds please.");
+            if (((bool)server.CheckAuth("", Context.Guild.Id) == true))
+            {
+                server.RemoveAuth(Context.Guild.Id);
+                server.RemoveRole(Context.Guild.Id);
+                await msg.ModifyAsync(msgProperty => msgProperty.Content = "Your discord server got unlinked successfully.");
+            }
+            else
+            {
+                await msg.ModifyAsync(msgProperty => msgProperty.Content = "Your discord server isnt linked.");
+            }
+            }
         catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
