@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,14 +66,17 @@ using Discord.WebSocket;
     }
     private async Task Joinedguild(SocketGuild guild)
     {
+        try { 
         if (!((bool)server.CheckAuth("None",guild.Id) == true))
         {
             ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
             GuildPermissions perms = new GuildPermissions(origin);
-            var guildd = await guild.CreateRoleAsync("Fork-Mods", perms,null,false,false,null);
+            //Color Colorr = new Color(21, 22, 34);
+            var guildd = await guild.CreateRoleAsync("Fork-Mods", perms,null, false,false,null);
             var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
             await vChan.AddPermissionOverwriteAsync(guildd, AdminPermissions());
             await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, None());
+            server.InsertRole(guild.Id, guildd.Id);
             var ebd = new EmbedBuilder();
             ebd.Color = Color.Green;
             ebd.WithCurrentTimestamp();
@@ -82,6 +86,10 @@ using Discord.WebSocket;
             var ownerr = Client.GetGuild(guild.Id).OwnerId;
             await vChan.SendMessageAsync($"<@{ownerr}>", false, ebd.Build());
         }
+
+        }
+        catch (Exception ex)
+        { }
     }
     private async Task BulkDeleteAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
         {
@@ -140,6 +148,10 @@ using Discord.WebSocket;
                     }
                     else
                     {
+                    var Roleid = (long)server.GetRole(context.Guild.Id);
+                    var authorr = context.Guild.GetUser(context.Message.Author.Id);
+                    if (authorr.Roles.Any(r => r.Id == (ulong)Roleid) == true)
+                    {
                         string command = userMessage.Content.Substring(argPos).Trim();
                         var result = await KKK.CommandService.ExecuteAsync(context, command, Services);
                         if (!result.IsSuccess)
@@ -148,6 +160,8 @@ using Discord.WebSocket;
                             {
                             }
                         }
+                    }
+                
                     }
                 }
                 else
