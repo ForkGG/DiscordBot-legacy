@@ -140,7 +140,8 @@ using Discord.WebSocket;
             var context = new SocketCommandContext(Client, userMessage);
             try
             {
-                if (!(message.Channel.GetType().ToString() == "Discord.WebSocket.SocketDMChannel"))
+            string command = userMessage.Content.Substring(argPos).Trim();
+            if (!(message.Channel.GetType().ToString() == "Discord.WebSocket.SocketDMChannel"))
                 {
                     if (!userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos) && !userMessage.HasStringPrefix(KKK.prefix, ref argPos, StringComparison.OrdinalIgnoreCase))
                     {
@@ -148,18 +149,31 @@ using Discord.WebSocket;
                     }
                     else
                     {
+                
                     var Roleid = (long)server.GetRole(context.Guild.Id);
                     var authorr = context.Guild.GetUser(context.Message.Author.Id);
                     if (authorr.Roles.Any(r => r.Id == (ulong)Roleid) == true)
                     {
-                        string command = userMessage.Content.Substring(argPos).Trim();
-                        var result = await KKK.CommandService.ExecuteAsync(context, command, Services);
-                        if (!result.IsSuccess)
+                        bool allow = false;
+                        if (command == "auth") //if its for authentication let the command to be executed
                         {
-                            if (!((int?)result.Error == (int?)CommandError.UnknownCommand) == true)
+                            allow = true;
+                        }
+                        else if((bool)server.CheckAuth("null", context.Guild.Id) == true) //if its not for authentication and the server is authenticated already let commands to be executed
+                        {
+                            allow = true;
+                        }
+                        if ((bool)allow == true)
+                        {
+                            var result = await KKK.CommandService.ExecuteAsync(context, command, Services);
+                            if (!result.IsSuccess)
                             {
+                                if (!((int?)result.Error == (int?)CommandError.UnknownCommand) == true)
+                                {
+                                }
                             }
                         }
+                       
                     }
                 
                     }
