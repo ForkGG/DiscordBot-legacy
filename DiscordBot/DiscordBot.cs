@@ -26,25 +26,25 @@ using Microsoft.Extensions.DependencyInjection;
 
         private async Task RunAsync()
         {
-        ILog logger = LogManager.GetLogger(typeof(FleckLog));
-
-        FleckLog.LogAction = (level, message, ex) => {
-            switch (level)
-            {
-                case LogLevel.Debug:
-                    logger.Debug(message, ex);
-                    break;
-                case LogLevel.Error:
-                    logger.Error(message, ex);
-                    break;
-                case LogLevel.Warn:
-                    logger.Warn(message, ex);
-                    break;
-                default:
-                    logger.Info(message, ex);
-                    break;
-            }
-        };
+        //ILog logger = LogManager.GetLogger(typeof(FleckLog));
+        FleckLog.Level = LogLevel.Debug;
+        //FleckLog.LogAction = (level, message, ex) => {
+        //    switch (level)
+        //    {
+        //        case LogLevel.Debug:
+        //            logger.Debug(message, ex);
+        //            break;
+        //        case LogLevel.Error:
+        //            logger.Error(message, ex);
+        //            break;
+        //        case LogLevel.Warn:
+        //            logger.Warn(message, ex);
+        //            break;
+        //        default:
+        //            logger.Info(message, ex);
+        //            break;
+        //    }
+        //};
         var server = new WebSocketServer("ws://0.0.0.0:8181");
         server.Start(socket =>
         {
