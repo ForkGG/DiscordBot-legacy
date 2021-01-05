@@ -120,6 +120,27 @@ public class Server
             cmd.ExecuteNonQuery();
         }
     }
+    public object GetTokenOfServer(ulong serverid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "SELECT * FROM Auth WHERE Serverid=@serverid";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@token", serverid);
+            sqlconn.Open();
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+
+
+                    return reader["Token"];
+                }
+
+            }
+        }
+        return null;
+    }
     public object GetIPForToken(string token)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
