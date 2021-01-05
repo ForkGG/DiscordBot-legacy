@@ -18,7 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
     public class Discord_Bot
     {
     public Server serverr = new Server();
-    public static List<IWebSocketConnection> allSockets { get; set; } = new List<IWebSocketConnection>();
+  public static List<IWebSocketConnection> allSockets { get; set; } = new List<IWebSocketConnection>();
     public static async Task StartAsync()
         {
             await new Discord_Bot().RunAsync();
