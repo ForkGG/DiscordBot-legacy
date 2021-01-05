@@ -77,57 +77,18 @@ public class Server
 
             return null;
         }
-
-        public object checkifliveidexists(string videoid)
+    public void RemoveOnhold(string token)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            using (var sqlconn = new SQLiteConnection(connectionstr))
-            {
-                string insert = "SELECT * FROM YTLives WHERE URL=@url";
-                var cmd = new SQLiteCommand(insert, sqlconn);
-                cmd.Parameters.AddWithValue("@url", videoid);
-                sqlconn.Open();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    if (reader.HasRows)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return null;
+            string insert = "DELETE FROM Onhold WHERE Token=@token";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@token", token);
+            sqlconn.Open();
+            cmd.ExecuteNonQuery();
         }
-
-        public object checkifaresame(string videoid, bool value)
-        {
-            using (var sqlconn = new SQLiteConnection(connectionstr))
-            {
-                string insert = "SELECT * FROM YTVideos WHERE URL=@url AND Posted=@posted";
-                var cmd = new SQLiteCommand(insert, sqlconn);
-                cmd.Parameters.AddWithValue("@url", videoid);
-                cmd.Parameters.AddWithValue("@posted", value.ToString());
-                sqlconn.Open();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    if (reader.HasRows)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public object CheckAuth(string token,ulong serverid = 0)
+    }
+    public object CheckAuth(string token,ulong serverid = 0)
         {
             using (var sqlconn = new SQLiteConnection(connectionstr))
             {
@@ -149,14 +110,14 @@ public class Server
                 }
             }
         }
-    public object CheckOnhold(string token,string ip)
+    public object CheckOnhold(string token,string ip = "Null")
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
             string insert = "SELECT * FROM Onhold WHERE Token=@token OR IP = @ip";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@token", token);
-            cmd.Parameters.AddWithValue("@ip", token);
+            cmd.Parameters.AddWithValue("@ip", ip);
             sqlconn.Open();
             using (var reader = cmd.ExecuteReader())
             {
@@ -171,17 +132,39 @@ public class Server
             }
         }
     }
-    public void InsertAuth(ulong serverid, string token)
+    public void InsertAuth(ulong serverid, string token,string IP)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            string insert = "INSERT INTO Auth(Serverid,Token) VALUES (@serverid,@token)";
+            string insert = "INSERT INTO Auth(Serverid,Token,IP) VALUES (@serverid,@token,@ip)";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             cmd.Parameters.AddWithValue("@token", token);
+            cmd.Parameters.AddWithValue("@ip", IP);
             sqlconn.Open();
             cmd.ExecuteNonQuery();
         }
+    }
+    public object GetIPForToken(string token)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "SELECT * FROM Onhold WHERE Token=@token";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@token", token);
+            sqlconn.Open();
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+
+
+                    return reader["IP"];
+                }
+
+            }
+        }
+        return null;
     }
     public void InsertOnhold(string token, string IP)
     {
@@ -200,19 +183,6 @@ public class Server
             using (var sqlconn = new SQLiteConnection(connectionstr))
             {
                 string insert = "INSERT INTO YTVideos(URL,Posted) VALUES (@url,@posted)";
-                var cmd = new SQLiteCommand(insert, sqlconn);
-                cmd.Parameters.AddWithValue("@url", videoid);
-                cmd.Parameters.AddWithValue("@posted", value.ToString());
-                sqlconn.Open();
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        public void insertliveid(string videoid, bool value)
-        {
-            using (var sqlconn = new SQLiteConnection(connectionstr))
-            {
-                string insert = "INSERT INTO YTLives(URL,Posted) VALUES (@url,@posted)";
                 var cmd = new SQLiteCommand(insert, sqlconn);
                 cmd.Parameters.AddWithValue("@url", videoid);
                 cmd.Parameters.AddWithValue("@posted", value.ToString());
