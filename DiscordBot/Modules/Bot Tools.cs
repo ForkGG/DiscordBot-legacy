@@ -70,7 +70,7 @@ public class Bot_Tools : InteractiveBase
         try
         {
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
-            int result = await Sendmsg(Context.Guild.Id, $"stop|{worldname}");
+            int result = await Sendmsg(Context.Guild.Id, $"stop|{worldname}|{Context.User.Username}#{Context.User.Discriminator}");
             if (result == 1)
             {
                 await msg.ModifyAsync(msgProperty =>
