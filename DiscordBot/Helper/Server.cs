@@ -141,11 +141,15 @@ public class Server
         }
         return null;
     }
-    public object GetIPForToken(string token)
+    /// <summary>Int 1 is for Onhold database, Int 2 is for Auth database
+    /// </summary>
+    public object GetIPForToken(string token,int db)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            string insert = "SELECT * FROM Onhold WHERE Token=@token";
+            string dbname = null;
+            if (db == 1) { dbname = "Onhold"; } else { dbname = "Auth"; }
+            string insert = $"SELECT * FROM {dbname} WHERE Token=@token";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@token", token);
             sqlconn.Open();
