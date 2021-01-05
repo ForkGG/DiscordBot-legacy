@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -21,6 +22,45 @@ public class Bot_Tools : InteractiveBase
 
     }
     public Server server = new Server();
+    public async Task<int> Sendmsg(ulong serverid,string msg)
+    {
+        string token = (string)server.GetTokenOfServer(serverid);
+        string ip = (string)server.GetIPForToken(token, 2);
+
+        if ((bool)CheckConnection(ip) == true)  //check if its connected
+        {
+            int startTickCount = Environment.TickCount;
+            int timeout = (int)TimeSpan.FromSeconds(10).TotalMilliseconds; //timeout
+            bool flag = false;
+            while (Environment.TickCount > startTickCount + timeout && flag == false)
+            {
+                if (Environment.TickCount > startTickCount + timeout)
+                {
+                    flag = true;
+                    return 0;
+                }
+                else
+                {
+                    try
+                    {
+                        var socket = Discord_Bot.allSockets.Find(client => client.ConnectionInfo.ClientIpAddress == ip);
+                        await socket.Send(msg);
+                        return 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        return 0;
+                    }
+                }
+            }
+
+            return 0;
+        }
+        else
+        {
+            return 0;
+        }
+    }
     [Command("stop", RunMode = RunMode.Async)]
     [Alias("stop")]
     [Summary("Stops your mc server. usage: (prefix)stop [worldname]")]
@@ -29,17 +69,23 @@ public class Bot_Tools : InteractiveBase
         try
         {
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
-            string token = (string)server.GetTokenOfServer(Context.Guild.Id);
-            string ip = (string)server.GetIPForToken(token,2);
-            if ((bool)CheckConnection(ip) == true)  //check if its connected
+            int result = await Sendmsg(Context.Guild.Id, $"stop|{worldname}");
+            if (result == 1)
             {
-                
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Great, your discord server is now authorized with your fork server.");
+                    msgProperty.Embed = Embed("Command Executed.");
                 });
             }
+            else if (result == 0)
+            {
+                await msg.ModifyAsync(msgProperty =>
+                {
+                    msgProperty.Content = $"{Context.Message.Author.Mention}";
+                    msgProperty.Embed = Embed("Oops. Looks like your fork app isnt online or connection timed out, please restart it.");
+                });
+            }    
         }
         catch (Exception ex)
         {
@@ -113,9 +159,18 @@ public class Bot_Tools : InteractiveBase
     }
     private bool CheckConnection(string ip)
     {
+       
         if (Discord_Bot.allSockets.Any(client => client.ConnectionInfo.ClientIpAddress == ip))
         {
-            return true;
+            var socket = Discord_Bot.allSockets.Find(client => client.ConnectionInfo.ClientIpAddress == ip);
+            if (socket.IsAvailable) {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+            
         }
         else
         {
