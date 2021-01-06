@@ -121,6 +121,8 @@ using Microsoft.Extensions.DependencyInjection;
                                     break;
 
                                 case "400": //error
+                                    string error = codes[7];
+                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{EventRename(eventt)}` event for `{servername}` which executed by `{discordname}` was not successful, `error: {error}`", 400);
                                     break;
                             }
                         }
