@@ -79,6 +79,33 @@ public class Bot_Tools : InteractiveBase
             return 0;
         }
     }
+
+    [Command("rec", RunMode = RunMode.Async)]
+    [Alias("rec")]
+    [Summary("Recreates role and channels. usage: (prefix)rec")]
+    public async Task Rec()
+    {
+        try
+        {
+
+            if (Context.Guild.GetChannel((ulong)server.GetRoleandChannel(Context.Guild.Id, 1)) != null) { await Context.Guild.GetChannel((ulong)server.GetRoleandChannel(Context.Guild.Id, 1)).DeleteAsync(); }
+            if (Context.Guild.GetRole((ulong)server.GetRoleandChannel(Context.Guild.Id, 0)) != null) { await Context.Guild.GetRole((ulong)server.GetRoleandChannel(Context.Guild.Id, 0)).DeleteAsync(); }
+            server.RemoveRole(Context.Guild.Id);
+            ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
+            GuildPermissions perms = new GuildPermissions(origin);
+            //Color Colorr = new Color(21, 22, 34);
+            var roleee = await Context.Guild.CreateRoleAsync("Fork-Mods", perms, null, false, false, null);
+            var vChan = await Context.Guild.CreateTextChannelAsync("Fork-Bot");
+            await vChan.AddPermissionOverwriteAsync(roleee, CommandHandler.AdminPermissions());
+            await vChan.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, CommandHandler.None());
+            server.InsertRole(Context.Guild.Id, roleee.Id, vChan.Id);
+            var ebd = new EmbedBuilder();
+            ebd.Color = Color.Green;
+            ebd.WithDescription("Done.");
+            await ReplyAsync($"<@{Context.Message.Author.Mention}>", false, ebd.Build());
+        }
+        catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+    }
     [Command("stop", RunMode = RunMode.Async)]
     [Alias("stop")]
     [Summary("Stops your mc server. usage: (prefix)stop [worldname]")]
@@ -194,6 +221,7 @@ public class Bot_Tools : InteractiveBase
             return false;
         }
     }
+    
     [Command("unauth", RunMode = RunMode.Async)]
     [Alias("unauthorize")]
     [Summary("Unauthorizes your discord server with fork mc server. usage: (prefix)unauth")]

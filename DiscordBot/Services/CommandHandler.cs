@@ -88,9 +88,8 @@ using Discord.WebSocket;
                     var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
                     await vChan.SendMessageAsync($"<@{ownerr}>", false, ebd.Build());
                 }
-
-
             } catch (Exception ex) { } });
+        await Task.CompletedTask;
     }
 
     private async Task BulkDeleteAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
@@ -151,7 +150,7 @@ using Discord.WebSocket;
                     }
                     else
                     {
-                    var Roleid = (long)server.GetRole(context.Guild.Id);
+                    var Roleid = (long)server.GetRoleandChannel(context.Guild.Id,0);
                     var authorr = context.Guild.GetUser(context.Message.Author.Id);
                    var thisss = context.Message.Author as SocketGuildUser;
                     if (authorr.Roles.Any(r => r.Id == (ulong)Roleid) == true || thisss.GuildPermissions.ManageGuild == true)

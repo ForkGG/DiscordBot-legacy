@@ -125,6 +125,29 @@ public class Server
                 }
             }
         }
+    /// <summary>Check if channel or role is created already
+    /// </summary>
+    public object CheckRoleAndChannel(ulong serverid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "SELECT * FROM OnJoin WHERE Serverid=@serverid";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            sqlconn.Open();
+            using (var reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+    }
     public object CheckOnhold(string token,string ip = "Null")
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
@@ -160,14 +183,15 @@ public class Server
             cmd.ExecuteNonQuery();
         }
     }
-    public void InsertRole(ulong serverid, ulong roleid)
+    public void InsertRole(ulong serverid, ulong roleid,ulong channelid)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            string insert = "INSERT INTO Role(Serverid,Roleid) VALUES (@serverid,@roleid)";
+            string insert = "INSERT INTO OnJoin(Serverid,Roleid,Channelid) VALUES (@serverid,@roleid,@channelid)";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             cmd.Parameters.AddWithValue("@roleid", roleid);
+            cmd.Parameters.AddWithValue("@channelid", channelid);
             sqlconn.Open();
             cmd.ExecuteNonQuery();
         }
@@ -176,7 +200,7 @@ public class Server
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            string insert = "DELETE FROM Role WHERE Serverid = @serverid";
+            string insert = "DELETE FROM OnJoin WHERE Serverid = @serverid";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             sqlconn.Open();
@@ -225,11 +249,13 @@ public class Server
         }
         return null;
     }
-    public object GetRole(ulong Serverid)
+    /// <summary>Int 0 returns Roleid , Int 1 Returns Channelid
+    /// </summary>
+    public long GetRoleandChannel(ulong Serverid, int num = 0)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            string insert = "SELECT * FROM Role WHERE Serverid=@Serverid";
+            string insert = "SELECT * FROM OnJoin WHERE Serverid=@Serverid";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@Serverid", Serverid);
             sqlconn.Open();
@@ -237,7 +263,14 @@ public class Server
             {
                 while (reader.Read())
                 {
-                    return reader["Roleid"];
+                    switch (num)
+                    {
+                        case 0:
+                            return (long)reader["Roleid"];
+                        case 1:
+                            return (long)reader["Channelid"];
+                    }
+                   
                 }
 
             }
