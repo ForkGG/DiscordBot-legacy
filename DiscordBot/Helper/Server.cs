@@ -40,6 +40,69 @@ public class Server
             cmd.ExecuteNonQuery();
         }
     }
+    /// <summary>Check if token and ip are same
+    /// </summary>
+    public object CheckAuth2(string token, string ip)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "SELECT * FROM Auth WHERE Token=@token AND IP=@ip";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@token", token);
+            cmd.Parameters.AddWithValue("@ip", ip);
+            sqlconn.Open();
+            using (var reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    /// <summary>Check if ip is in the database, if so return us the token, num 0 checks if exist (bool), num 1 returns the token
+    /// </summary>
+    public object CheckIfIPExist(string ip, int num)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "SELECT * FROM Auth WHERE IP = @ip";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@ip", ip);
+            sqlconn.Open();
+            if (num == 0) {
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.HasRows)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                
+            } else if (num == 1)
+            {
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        return (string)reader["Token"];
+                    }
+                }
+            }
+            return null;
+        }
+    }
+    /// <summary>Check if token or serverid exists in the database
+    /// </summary>
     public object CheckAuth(string token,ulong serverid = 0)
         {
             using (var sqlconn = new SQLiteConnection(connectionstr))
@@ -120,21 +183,19 @@ public class Server
             cmd.ExecuteNonQuery();
         }
     }
-    public object GetTokenOfServer(ulong serverid)
+    public string GetTokenOfServer(ulong serverid)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
             string insert = "SELECT * FROM Auth WHERE Serverid=@serverid";
             var cmd = new SQLiteCommand(insert, sqlconn);
-            cmd.Parameters.AddWithValue("@token", serverid);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
             sqlconn.Open();
             using (var reader = cmd.ExecuteReader())
             {
                 while (reader.Read())
                 {
-
-
-                    return reader["Token"];
+                    return (string)reader["Token"];
                 }
 
             }
@@ -143,7 +204,7 @@ public class Server
     }
     /// <summary>Int 1 is for Onhold database, Int 2 is for Auth database
     /// </summary>
-    public object GetIPForToken(string token,int db)
+    public string GetIPForToken(string token,int db)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
@@ -157,9 +218,7 @@ public class Server
             {
                 while (reader.Read())
                 {
-
-
-                    return reader["IP"];
+                    return (string)reader["IP"];
                 }
 
             }
