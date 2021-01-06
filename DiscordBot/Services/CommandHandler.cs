@@ -13,17 +13,18 @@ using Discord.WebSocket;
     {
         public static string prefix = "$";
         public static CommandService CommandService;
-    }
+    public static DiscordSocketClient Client;
+}
 
     public class CommandHandler
     {
     public Server server = new Server();
-        private readonly DiscordSocketClient Client;
+    
         private readonly IServiceProvider Services;
 
         public CommandHandler(DiscordSocketClient client, CommandService commandService, IServiceProvider services)
         {
-            Client = client;
+            KKK.Client = client;
             KKK.CommandService = commandService;
             Services = services;
         }
@@ -31,11 +32,11 @@ using Discord.WebSocket;
         public async Task InitializeAsync()
         {
             await KKK.CommandService.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
-            Client.Ready += ready;
-            Client.UserJoined += welcome;
-            Client.MessageReceived += HandleCommandAsync;
-            Client.MessagesBulkDeleted += BulkDeleteAsync;
-        Client.JoinedGuild += Joinedguild;
+        KKK.Client.Ready += ready;
+        KKK.Client.UserJoined += welcome;
+        KKK.Client.MessageReceived += HandleCommandAsync;
+        KKK.Client.MessagesBulkDeleted += BulkDeleteAsync;
+        KKK.Client.JoinedGuild += Joinedguild;
     }
     public static OverwritePermissions AdminPermissions()
     {
@@ -83,7 +84,7 @@ using Discord.WebSocket;
             ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
             ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
             ebd.WithFooter("Fork is a freemium Minecraft server management.");
-            var ownerr = Client.GetGuild(guild.Id).OwnerId;
+            var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
             await vChan.SendMessageAsync($"<@{ownerr}>", false, ebd.Build());
         }
 
@@ -91,6 +92,7 @@ using Discord.WebSocket;
         catch (Exception ex)
         { }
     }
+
     private async Task BulkDeleteAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
         {
             await Task.CompletedTask;
@@ -101,7 +103,7 @@ using Discord.WebSocket;
             try
             {
                 var videos = Task.Run(() => { try { } catch (Exception ex) { } });
-                await Client.SetGameAsync($"Working On it", null, ActivityType.Listening);
+                await KKK.Client.SetGameAsync($"Working On it", null, ActivityType.Listening);
             }
             catch (Exception ex)
             {
@@ -137,13 +139,13 @@ using Discord.WebSocket;
             if (userMessage is null || userMessage.Author.IsBot || userMessage.Author.IsWebhook)
                 return;
             int argPos = 0;
-            var context = new SocketCommandContext(Client, userMessage);
+            var context = new SocketCommandContext(KKK.Client, userMessage);
             try
             {
            
             if (!(message.Channel.GetType().ToString() == "Discord.WebSocket.SocketDMChannel"))
                 {
-                    if (!userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos) && !userMessage.HasStringPrefix(KKK.prefix, ref argPos, StringComparison.OrdinalIgnoreCase))
+                    if (!userMessage.HasMentionPrefix(KKK.Client.CurrentUser, ref argPos) && !userMessage.HasStringPrefix(KKK.prefix, ref argPos, StringComparison.OrdinalIgnoreCase))
                     {
                         return;
                     }
