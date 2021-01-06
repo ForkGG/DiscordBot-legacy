@@ -19,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
     {
     public Server serverr = new Server();
   public static List<IWebSocketConnection> allSockets { get; set; } = new List<IWebSocketConnection>();
+    public static List<string> AliveTokens { get; set; } = new List<string>();
     public static async Task StartAsync()
         {
             await new Discord_Bot().RunAsync();
@@ -26,6 +27,7 @@ using Microsoft.Extensions.DependencyInjection;
 
         private async Task RunAsync()
         {
+
         //ILog logger = LogManager.GetLogger(typeof(FleckLog));
         FleckLog.Level = LogLevel.Debug;
         //FleckLog.LogAction = (level, message, ex) => {
@@ -48,35 +50,79 @@ using Microsoft.Extensions.DependencyInjection;
         var server = new WebSocketServer("ws://0.0.0.0:8181");
         server.Start(socket =>
         {
+
             socket.OnOpen = () =>
             {
-                Console.WriteLine("Open!");
                 if (allSockets.Any(client => client.ConnectionInfo.ClientIpAddress == socket.ConnectionInfo.ClientIpAddress))
                 {
-                    socket.Close(); //Little security, dont let same ip to connect twice
+                    var socket2 = allSockets.Find(client => client.ConnectionInfo.ClientIpAddress == socket.ConnectionInfo.ClientIpAddress);
+                    try { allSockets.Remove(socket2); } catch (Exception ex) { } //Little security, dont let same ip to connect twice
+                    allSockets.Add(socket);
+                    
                 }
                 else
                 {
-                    allSockets.Add(socket);
+                    try { allSockets.Remove(socket); } catch (Exception ex) { }
+                    allSockets.Add(socket); 
                 }
-               
             };
             socket.OnClose = () =>
             {
+
                 Console.WriteLine("Close!");
                 allSockets.Remove(socket);
+                if ((bool)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 0) == true)
+                {
+                    if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)))
+                    {
+                        AliveTokens.Remove((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
+                        Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress} Removed from alive tokens list");
+                    }
+                   
+                }
             };
-            socket.OnMessage = message =>
+            socket.OnMessage = async message =>
             {
                 string[] codes = (message).Split('|');
                 switch (codes[0])
                 {
                     case "login":
                         string token = codes[1];
+                      
                         if ((!(bool)serverr.CheckAuth(token) == true) && !(bool)serverr.CheckOnhold(token,socket.ConnectionInfo.ClientIpAddress) == true)  
                         {
                             serverr.InsertOnhold(token, socket.ConnectionInfo.ClientIpAddress);
                             Console.WriteLine("Token: " + token + $" IP: {socket.ConnectionInfo.ClientIpAddress} Added to onhold list");
+                        }
+                        else if ((bool)serverr.CheckAuth(token) == true && (bool)serverr.CheckAuth2(token,socket.ConnectionInfo.ClientIpAddress) == true)
+                            {
+                            if (!AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)))
+                            {
+                                AliveTokens.Add(token);
+                                Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress} Added to alive tokens list");
+                            }
+                          
+                        }
+                        break;
+                    case "notify":
+                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true)
+                        {
+                            string channelid = codes[1];
+                            string servername = codes[2];
+                            string discordname = codes[3];
+                            string messageid = codes[4];
+                            string eventt = codes[5];
+                            string result = codes[6];
+                           
+                            switch (codes[6])
+                            {
+                                case "200": //ok
+                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{EventRename(eventt)}` event for `{servername}` which executed by `{discordname}` was successful.", 200);
+                                    break;
+
+                                case "400": //error
+                                    break;
+                            }
                         }
                         break;
                 }
@@ -89,7 +135,17 @@ using Microsoft.Extensions.DependencyInjection;
         });
 
 
-       
+        string EventRename(string theevent)
+        {
+            switch (theevent)
+            {
+                case "stop":
+                    return "stop";
+                    break;
+                    
+            }
+            return null;
+        }
         var config = BuildConfig();
             using (var services = ConfigureServices())
             {
