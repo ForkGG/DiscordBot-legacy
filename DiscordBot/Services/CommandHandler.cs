@@ -67,30 +67,30 @@ using Discord.WebSocket;
     }
     private async Task Joinedguild(SocketGuild guild)
     {
-        try { 
-        if ((!(bool)server.CheckAuth("None",guild.Id) == true))
-        {
-            ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
-            GuildPermissions perms = new GuildPermissions(origin);
-            //Color Colorr = new Color(21, 22, 34);
-            var guildd = await guild.CreateRoleAsync("Fork-Mods", perms,null, false,false,null);
-            var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
-            await vChan.AddPermissionOverwriteAsync(guildd, AdminPermissions());
-            await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, None());
-            server.InsertRole(guild.Id, guildd.Id);
-            var ebd = new EmbedBuilder();
-            ebd.Color = Color.Green;
-            ebd.WithCurrentTimestamp();
-            ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
-            ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
-            ebd.WithFooter("Fork is a freemium Minecraft server management.");
-            var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
-            await vChan.SendMessageAsync($"<@{ownerr}>", false, ebd.Build());
-        }
+        var Do = Task.Run(async() => { try {
 
-        }
-        catch (Exception ex)
-        { }
+                if ((!(bool)server.CheckAuth("None", guild.Id) == true))
+                {
+                    ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
+                    GuildPermissions perms = new GuildPermissions(origin);
+                    //Color Colorr = new Color(21, 22, 34);
+                    var guildd = await guild.CreateRoleAsync("Fork-Mods", perms, null, false, false, null);
+                    var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
+                    await vChan.AddPermissionOverwriteAsync(guildd, AdminPermissions());
+                    await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, None());
+                    server.InsertRole(guild.Id, guildd.Id);
+                    var ebd = new EmbedBuilder();
+                    ebd.Color = Color.Green;
+                    ebd.WithCurrentTimestamp();
+                    ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
+                    ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
+                    ebd.WithFooter("Fork is a freemium Minecraft server management.");
+                    var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
+                    await vChan.SendMessageAsync($"<@{ownerr}>", false, ebd.Build());
+                }
+
+
+            } catch (Exception ex) { } });
     }
 
     private async Task BulkDeleteAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
@@ -102,7 +102,7 @@ using Discord.WebSocket;
         {
             try
             {
-                var videos = Task.Run(() => { try { } catch (Exception ex) { } });
+                var Do = Task.Run(() => { try { } catch (Exception ex) { } });
                 await KKK.Client.SetGameAsync($"Working On it", null, ActivityType.Listening);
             }
             catch (Exception ex)
