@@ -12,49 +12,66 @@ using Websocket.Client;
 
 public class Bot_Tools : InteractiveBase
     {
-    public static Discord.Embed Embed(string msg)
+    public static async Task NotificationControlAsync(ulong messageid, ulong channelid, string msg, int status)
     {
-        var ebd = new EmbedBuilder();
-        Color Colorr = new Color(21, 22, 34);
-        ebd.Color = Colorr;
-        ebd.WithDescription($"{msg}");
-        return ebd.Build();
+        try 
+        {
+            IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel(channelid);
+            IUserMessage themessage = (IUserMessage)await channel.GetMessageAsync(messageid);
+
+            await themessage.ModifyAsync(msgProperty =>
+            {
+                msgProperty.Embed = Bot_Tools.Embed(msg, status);
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
 
     }
+    public static Discord.Embed Embed(string msg, int status = 0)
+    {
+        var ebd = new EmbedBuilder();
+        if (status == 0) { Color Colorr = new Color(21, 22, 34); ebd.Color = Colorr;} else if (status == 200) { ebd.Color = Color.Green; } else if (status == 400) { ebd.Color = Color.Red; }
+        ebd.WithDescription($"{msg}");
+        
+        return ebd.Build();
+
+
+
+    }
+
     public Server server = new Server();
     /// <summary>By giving server id, it gets ip and token, and using timout is optional, its on 10 sec default
     /// </summary>
-    public async Task<int> Sendmsg(ulong serverid,string msg,int timeout = 10000)
+    public async Task<int> Sendmsg(ulong serverid,string msg,long timeout = 10000)
     {
         string token = (string)server.GetTokenOfServer(serverid);
         string ip = (string)server.GetIPForToken(token, 2);
 
         if ((bool)CheckConnection(ip) == true)  //check if its connected
         {
-            int startTickCount = Environment.TickCount;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             bool flag = false;
-            while (Environment.TickCount > startTickCount + timeout && flag == false)
+            while (flag == false)
             {
-                if (Environment.TickCount > startTickCount + timeout)
+                if (sw.ElapsedMilliseconds > timeout) { return 0; }
+                try
                 {
-                    flag = true;
+
+                    var socket = Discord_Bot.allSockets.Find(client => client.ConnectionInfo.ClientIpAddress == ip);
+                    await socket.Send(msg);
+                    return 1;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
                     return 0;
                 }
-                else
-                {
-                    try
-                    {
-                        var socket = Discord_Bot.allSockets.Find(client => client.ConnectionInfo.ClientIpAddress == ip);
-                        await socket.Send(msg);
-                        return 1;
-                    }
-                    catch (Exception ex)
-                    {
-                        return 0;
-                    }
-                }
             }
-
             return 0;
         }
         else
@@ -70,7 +87,7 @@ public class Bot_Tools : InteractiveBase
         try
         {
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
-            int result = await Sendmsg(Context.Guild.Id, $"stop|{worldname}|{Context.User.Username}#{Context.User.Discriminator}");
+            int result = await Sendmsg(Context.Guild.Id, $"stop|{Context.Channel.Id}|{worldname}|{Context.User.Username}#{Context.User.Discriminator}|{msg.Id}");
             if (result == 1)
             {
                 await msg.ModifyAsync(msgProperty =>
