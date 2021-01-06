@@ -68,7 +68,7 @@ using Discord.WebSocket;
     private async Task Joinedguild(SocketGuild guild)
     {
         try { 
-        if (!((bool)server.CheckAuth("None",guild.Id) == true))
+        if ((!(bool)server.CheckAuth("None",guild.Id) == true))
         {
             ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
             GuildPermissions perms = new GuildPermissions(origin);
@@ -153,7 +153,8 @@ using Discord.WebSocket;
                     {
                     var Roleid = (long)server.GetRole(context.Guild.Id);
                     var authorr = context.Guild.GetUser(context.Message.Author.Id);
-                    if (authorr.Roles.Any(r => r.Id == (ulong)Roleid) == true)
+                   var thisss = context.Message.Author as SocketGuildUser;
+                    if (authorr.Roles.Any(r => r.Id == (ulong)Roleid) == true || thisss.GuildPermissions.ManageGuild == true)
                     {
                         if (userMessage.Content.ToLower().StartsWith($"{KKK.prefix}auth") || (bool)server.CheckAuth("null", context.Guild.Id) == true) //if its for authentication let the command to be executed
                         {
