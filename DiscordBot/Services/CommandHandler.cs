@@ -69,16 +69,16 @@ using Discord.WebSocket;
     {
         var Do = Task.Run(async() => { try {
 
-                if ((!(bool)server.CheckAuth("None", guild.Id) == true))
+                if ((!(bool)server.CheckAuth("None", guild.Id) == true)  || (!(bool)server.CheckRoleAndChannel(guild.Id) == true))
                 {
                     ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
                     GuildPermissions perms = new GuildPermissions(origin);
                     //Color Colorr = new Color(21, 22, 34);
-                    var guildd = await guild.CreateRoleAsync("Fork-Mods", perms, null, false, false, null);
+                    var roleee = await guild.CreateRoleAsync("Fork-Mods", perms, null, false, false, null);
                     var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
-                    await vChan.AddPermissionOverwriteAsync(guildd, AdminPermissions());
+                    await vChan.AddPermissionOverwriteAsync(roleee, AdminPermissions());
                     await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, None());
-                    server.InsertRole(guild.Id, guildd.Id);
+                    server.InsertRole(guild.Id, roleee.Id,vChan.Id);
                     var ebd = new EmbedBuilder();
                     ebd.Color = Color.Green;
                     ebd.WithCurrentTimestamp();
