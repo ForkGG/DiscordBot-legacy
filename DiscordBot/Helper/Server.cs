@@ -51,17 +51,6 @@ CREATE TABLE `Notify` (
 	`Messageid` INTEGER,
 	PRIMARY KEY(`ID` AUTOINCREMENT)
 );
-            CREATE TABLE `Serverlist` (
-
-    `ID`    INTEGER,
-	`Name`  TEXT,
-	`Type`  TEXT,
-	`Version`   TEXT,
-	`Status`    TEXT,
-	`Playercount`   INTEGER,
-	`Maxplayer` INTEGER,
-	PRIMARY KEY(`ID` AUTOINCREMENT)
-);
             ";
             using (SQLiteConnection sqlconn = new SQLiteConnection(connectionstr))
             {

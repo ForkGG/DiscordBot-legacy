@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ using Discord.WebSocket;
     public class CommandHandler
     {
     public Server server = new Server();
-    
+   
         private readonly IServiceProvider Services;
 
         public CommandHandler(DiscordSocketClient client, CommandService commandService, IServiceProvider services)
@@ -101,7 +102,11 @@ using Discord.WebSocket;
         {
             try
             {
-                var Do = Task.Run(() => { try { } catch (Exception ex) { } });
+                var Do = Task.Run(() => { try { 
+                    
+                    
+                    
+                    } catch (Exception ex) { } });
                 await KKK.Client.SetGameAsync($"Working On it", null, ActivityType.Listening);
             }
             catch (Exception ex)
