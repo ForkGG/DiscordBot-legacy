@@ -15,8 +15,47 @@ public class Server
         private string fullpath;
         public string connectionstr;
 
+    public void CreateIfNot()
+    {
+        Console.WriteLine("Checking for database...");
+        if (!DBcheck(fullpath))
+        {
+            Console.WriteLine("There isnt any database, creating one...");
+            string createtable = @"CREATE TABLE `Auth` (
+	`ID`	INTEGER,
+	`Serverid`	INTEGER,
+	`Token`	TEXT,
+	`IP`	TEXT,
+	PRIMARY KEY(`ID` AUTOINCREMENT)
+);
+CREATE TABLE `OnJoin` (
 
-        public void UpdateLive(string Videoid, bool Value)
+    `ID`    INTEGER,
+	`Serverid`  INTEGER,
+	`Channelid` INTEGER,
+	`Roleid`    INTEGER,
+	PRIMARY KEY(`ID` AUTOINCREMENT)
+);
+CREATE TABLE `Onhold` (
+
+    `ID`    INTEGER,
+	`Token` TEXT,
+	`IP`    TEXT,
+	PRIMARY KEY(`ID` AUTOINCREMENT)
+);
+            ";
+            using (SQLiteConnection sqlconn = new SQLiteConnection(connectionstr))
+            {
+                SQLiteCommand cmd = new SQLiteCommand(createtable, sqlconn);
+
+                sqlconn.Open();
+                cmd.ExecuteNonQuery();
+            }
+            Console.WriteLine("Created a new database");
+        } else { Console.WriteLine("Database exists."); }
+    }
+
+    public void UpdateLive(string Videoid, bool Value)
         {
             using (var sqlconn = new SQLiteConnection(connectionstr))
             {
@@ -226,6 +265,25 @@ public class Server
         }
         return null;
     }
+    public ulong GetServerForToken(string token)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "SELECT * FROM Auth WHERE Token=@token";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@token", token);
+            sqlconn.Open();
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    return (ulong)reader["Serverid"];
+                }
+
+            }
+        }
+        return 0;
+    }
     /// <summary>Int 1 is for Onhold database, Int 2 is for Auth database
     /// </summary>
     public string GetIPForToken(string token,int db)
@@ -312,4 +370,8 @@ public class Server
             cmd.ExecuteNonQuery();
         }
     }
+    public bool DBcheck(string fullpath)
+    {
+        return System.IO.File.Exists(fullpath);
     }
+}
