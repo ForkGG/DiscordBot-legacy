@@ -110,34 +110,64 @@ using Microsoft.Extensions.DependencyInjection;
                     case "notify":
                         if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true)
                         {
-                            string servername = codes[1];
-                            string discordname = codes[2];
-                            string channelid = codes[3];
-                            string messageid = codes[4];
-                            string eventt = codes[5];
-                            string result = codes[6];
-
-                            switch (eventt)
+                            var Do = Task.Run(async () =>
                             {
-                                case "stop":
-                          
-                            switch (result)
-                            {
-                                //notify|{servername}|{discordname}|{channelid}|{messageid}|{eventt}|400|this is a test
-                                case "20": //ok
-                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` stopped successfully, command was executed by `{discordname}`", int.Parse(result));
-                                    break;
+                                try
+                                {
+                                    string servername = codes[1];
+                                    string discordname = codes[2];
+                                    string channelid = codes[3];
+                                    string messageid = codes[4];
+                                    string eventt = codes[5];
+                                    string result = codes[6];
 
-                                case "40": //its stopped already 
-                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` is already stopped, command was executed by `{discordname}`", int.Parse(result));
-                                    break;
+                                    switch (eventt)
+                                    {
+                                        case "stop":
 
-                                case "44": //server not found
-                               await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"I couldnt find your `{servername}` server, please make sure you typed the right name, command was executed by `{discordname}`", int.Parse(result));
-                                 break;
+                                            switch (result)
+                                            {
+                                                //notify|{servername}|{discordname}|{channelid}|{messageid}|{eventt}|400|this is a test
+                                                case "20": //ok
+                                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` stopped successfully, command was executed by `{discordname}`", int.Parse(result));
+                                                    break;
+
+                                                case "40": //its stopped already 
+                                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` is stopped already, command was executed by `{discordname}`", int.Parse(result));
+                                                    break;
+
+                                                case "44": //server not found
+                                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"I couldnt find your `{servername}` server, please make sure you typed the right name, command was executed by `{discordname}`", int.Parse(result));
+                                                    break;
+                                            }
+                                            break;
+
+                                        case "start":
+
+                                            switch (result)
+                                            {
+                                                //notify|{servername}|{discordname}|{channelid}|{messageid}|{eventt}|400|this is a test
+                                                case "20": //ok
+                                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` server is starting.. , command was executed by `{discordname}`", int.Parse(result));
+                                                    break;
+                                                case "21": //ok
+                                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` started successfully, command was executed by `{discordname}`", int.Parse(result));
+                                                    break;
+                                                case "40": //its stopped already 
+                                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` is running already, command was executed by `{discordname}`", int.Parse(result));
+                                                    break;
+
+                                                case "44": //server not found
+                                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"I couldnt find your `{servername}` server, please make sure you typed the right name, command was executed by `{discordname}`", int.Parse(result));
+                                                    break;
+                                            }
+                                            break;
                                     }
-                                    break;
-                        }
+                                }
+                                catch (Exception ex) { }
+                            });
+                                  
+
                 }
                         break;
                 }
