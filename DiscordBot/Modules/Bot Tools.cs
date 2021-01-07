@@ -120,7 +120,7 @@ public class Bot_Tools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Command Executed.");
+                    msgProperty.Embed = Embed("Command Executed.",20);
                 });
             }
             else if (result == 0)
@@ -128,7 +128,7 @@ public class Bot_Tools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Oops. Looks like your fork app isnt online or connection timed out, please restart it.");
+                    msgProperty.Embed = Embed("Oops. Looks like your fork app isnt online or connection timed out, please restart it.",40);
                 });
             }    
         }
@@ -152,7 +152,7 @@ public class Bot_Tools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Command Executed.");
+                    msgProperty.Embed = Embed("Command Executed.",20);
                 });
             }
             else if (result == 0)
@@ -160,7 +160,7 @@ public class Bot_Tools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Oops. Looks like your fork app isnt online or connection timed out, please restart it.");
+                    msgProperty.Embed = Embed("Oops. Looks like your fork app isnt online or connection timed out, please restart it.",40);
                 });
             }
         }
@@ -203,11 +203,11 @@ public class Bot_Tools : InteractiveBase
                 {
                     server.InsertAuth(Context.Guild.Id, token,ip);
                     server.RemoveOnhold(token);
-                    await Sendmsg(Context.Guild.Id, "status|Linked");
+                    await Sendmsg(Context.Guild.Id, $"status|Linked|{Context.Guild.Name}");
                     await msg.ModifyAsync(msgProperty =>
                     {
                         msgProperty.Content = $"{Context.Message.Author.Mention}";
-                        msgProperty.Embed = Embed("Great, your discord server is now authorized with your fork server.");
+                        msgProperty.Embed = Embed("Great, your discord server is now authorized with your fork server.",20);
                         });
                 }
                 else
@@ -215,7 +215,7 @@ public class Bot_Tools : InteractiveBase
                     await msg.ModifyAsync(msgProperty =>
                     {
                         msgProperty.Content = $"{Context.Message.Author.Mention}";
-                        msgProperty.Embed = Embed("Couldnt connect to your fork server, make sure its running.");
+                        msgProperty.Embed = Embed("Couldnt connect to your fork server, make sure its running.",40);
                     });
                 }
             }
@@ -224,7 +224,7 @@ public class Bot_Tools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Sorry, but this discord server or the token is already authorized or invalid.");
+                    msgProperty.Embed = Embed("Sorry, but this discord server or the token is already authorized or invalid.",40);
                 });
             }
           
@@ -270,7 +270,7 @@ public class Bot_Tools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("our discord server got unlinked successfully.");
+                    msgProperty.Embed = Embed("Your discord server got unlinked successfully.",20);
                 });
             }
             else
@@ -278,7 +278,7 @@ public class Bot_Tools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Your discord server isnt linked.");
+                    msgProperty.Embed = Embed("Your discord server isnt linked.",40);
                 });
             }
             }
