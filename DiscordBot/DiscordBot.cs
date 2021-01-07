@@ -164,12 +164,18 @@ using Microsoft.Extensions.DependencyInjection;
                                             break;
                                     }
                                 }
-                                catch (Exception ex) { }
+                                catch (Exception ex) { Console.WriteLine("Couldnt process request: invalid"); }
                             });
                                   
 
                 }
                         break;
+                    default:
+                        // ban ip in case gets to x requests To-DO
+                        Console.WriteLine($"Someone is trying to troll here, invalid packet: {message}");
+                        break;
+
+                            
                 }
 
                 //Console.WriteLine(message);
