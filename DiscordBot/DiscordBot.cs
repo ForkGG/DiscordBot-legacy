@@ -93,6 +93,7 @@ using Microsoft.Extensions.DependencyInjection;
                         {
                             serverr.InsertOnhold(token, socket.ConnectionInfo.ClientIpAddress);
                             Console.WriteLine("Token: " + token + $" IP: {socket.ConnectionInfo.ClientIpAddress} Added to onhold list");
+                           await socket.Send("status|OnHold");
                         }
                         else if ((bool)serverr.CheckAuth(token) == true && (bool)serverr.CheckAuth2(token,socket.ConnectionInfo.ClientIpAddress) == true)
                             {
@@ -100,6 +101,7 @@ using Microsoft.Extensions.DependencyInjection;
                             {
                                 AliveTokens.Add(token);
                                 Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress} Added to alive tokens list");
+                                await socket.Send("status|Linked");
                             }
                           
                         }
