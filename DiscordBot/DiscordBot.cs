@@ -107,15 +107,18 @@ using Microsoft.Extensions.DependencyInjection;
                     case "notify":
                         if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true)
                         {
-                            string channelid = codes[1];
-                            string servername = codes[2];
-                            string discordname = codes[3];
+                            string servername = codes[1];
+                            string discordname = codes[2];
+                            string channelid = codes[3];
                             string messageid = codes[4];
                             string eventt = codes[5];
                             string result = codes[6];
-                           
+
+
+
                             switch (codes[6])
                             {
+                                //notify|{servername}|{discordname}|{channelid}|{messageid}|{eventt}|400|this is a test
                                 case "200": //ok
                                     await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{EventRename(eventt)}` event for `{servername}` which executed by `{discordname}` was successful.", 200);
                                     break;
