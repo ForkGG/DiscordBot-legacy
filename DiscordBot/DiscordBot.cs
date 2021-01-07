@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,21 +117,28 @@ using Microsoft.Extensions.DependencyInjection;
                             string eventt = codes[5];
                             string result = codes[6];
 
-
-
-                            switch (codes[6])
+                            switch (eventt)
+                            {
+                                case "stop":
+                          
+                            switch (result)
                             {
                                 //notify|{servername}|{discordname}|{channelid}|{messageid}|{eventt}|400|this is a test
-                                case "200": //ok
-                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{EventRename(eventt)}` event for `{servername}` which executed by `{discordname}` was successful.", 200);
+                                case "20": //ok
+                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` stopped successfully, command was executed by `{discordname}`", int.Parse(result));
                                     break;
 
-                                case "400": //error
-                                    string error = codes[7];
-                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{EventRename(eventt)}` event for `{servername}` which executed by `{discordname}` was not successful, `error: {error}`", 400);
+                                case "40": //its stopped already 
+                                    await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` is already stopped, command was executed by `{discordname}`", int.Parse(result));
                                     break;
-                            }
+
+                                case "44": //server not found
+                               await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"I couldnt find your `{servername}` server, please make sure you typed the right name, command was executed by `{discordname}`", int.Parse(result));
+                                 break;
+                                    }
+                                    break;
                         }
+                }
                         break;
                 }
 
@@ -140,19 +148,6 @@ using Microsoft.Extensions.DependencyInjection;
              
             };
         });
-
-
-        string EventRename(string theevent)
-        {
-            switch (theevent)
-            {
-                case "stop":
-                    return "stop";
-                    break;
-                    
-            }
-            return null;
-        }
         var config = BuildConfig();
             using (var services = ConfigureServices())
             {
