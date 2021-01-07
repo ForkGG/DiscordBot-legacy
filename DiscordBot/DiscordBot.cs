@@ -219,6 +219,8 @@ using Microsoft.Extensions.DependencyInjection;
 
                                 }
                                 break;
+                            case "serverList":
+
                             default:
                                 // ban ip in case gets to x requests To-DO
                                 Console.WriteLine($"Someone is trying to troll here, invalid packet: {message}");
