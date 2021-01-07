@@ -43,6 +43,25 @@ CREATE TABLE `Onhold` (
 	`IP`    TEXT,
 	PRIMARY KEY(`ID` AUTOINCREMENT)
 );
+CREATE TABLE `Notify` (
+
+    `ID`    INTEGER,
+	`Serverid`  INTEGER,
+	`Channelid` INTEGER,
+	`Messageid` INTEGER,
+	PRIMARY KEY(`ID` AUTOINCREMENT)
+);
+            CREATE TABLE `Serverlist` (
+
+    `ID`    INTEGER,
+	`Name`  TEXT,
+	`Type`  TEXT,
+	`Version`   TEXT,
+	`Status`    TEXT,
+	`Playercount`   INTEGER,
+	`Maxplayer` INTEGER,
+	PRIMARY KEY(`ID` AUTOINCREMENT)
+);
             ";
             using (SQLiteConnection sqlconn = new SQLiteConnection(connectionstr))
             {
@@ -54,20 +73,43 @@ CREATE TABLE `Onhold` (
             Console.WriteLine("Created a new database");
         } else { Console.WriteLine("Database exists."); }
     }
-
-    public void UpdateLive(string Videoid, bool Value)
+    public void InsertNotify(ulong serverid, ulong channelid, ulong messageid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "INSERT INTO Notify(Serverid,Channelid,Messageid) VALUES (@serverid,@channelid,@messageid)";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            cmd.Parameters.AddWithValue("@channelid", channelid);
+            cmd.Parameters.AddWithValue("@messageid", messageid);
+            sqlconn.Open();
+            cmd.ExecuteNonQuery();
+        }
+    }
+    public void UpdateNotify(ulong serverid, ulong channelid,ulong messageid)
         {
             using (var sqlconn = new SQLiteConnection(connectionstr))
             {
-                string insert = "UPDATE YTLives SET Posted=@posted WHERE URL=@url";
+                string insert = "UPDATE Notify SET Channelid=@channelid,Messageid=@messageid WHERE Serverid=@serverid";
                 var cmd = new SQLiteCommand(insert, sqlconn);
-                cmd.Parameters.AddWithValue("@url", Videoid);
-                cmd.Parameters.AddWithValue("@Posted", Value.ToString());
-                sqlconn.Open();
+                cmd.Parameters.AddWithValue("@channelid", channelid);
+                cmd.Parameters.AddWithValue("@serverid", serverid);
+            cmd.Parameters.AddWithValue("@messageid", messageid);
+            sqlconn.Open();
                 cmd.ExecuteNonQuery();
             }
         }
-
+    public void RemoveNotify(ulong serverid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "DELETE FROM Notify WHERE Serverid=@serverid";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            sqlconn.Open();
+            cmd.ExecuteNonQuery();
+        }
+    }
     public void RemoveOnhold(string token)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
@@ -164,6 +206,29 @@ CREATE TABLE `Onhold` (
                 }
             }
         }
+    /// <summary>Check if server have a subscribed to a channel notification
+    /// </summary>
+    public bool CheckIfSubscribed(ulong serverid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "SELECT * FROM Notify WHERE Serverid=@serverid";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            sqlconn.Open();
+            using (var reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+    }
     /// <summary>Check if channel or role is created already
     /// </summary>
     public object CheckRoleAndChannel(ulong serverid)
