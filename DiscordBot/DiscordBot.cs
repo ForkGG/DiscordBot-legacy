@@ -48,6 +48,8 @@ using Microsoft.Extensions.DependencyInjection;
         //            break;
         //    }
         //};
+        Console.WriteLine("Checking if database exists...");
+     serverr.CreateIfNot();
         var server = new WebSocketServer("ws://0.0.0.0:8181");
         server.Start(socket =>
         {
