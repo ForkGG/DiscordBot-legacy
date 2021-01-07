@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
+using Discord.WebSocket;
 using Fleck;
 using Websocket.Client;
 
@@ -161,6 +162,76 @@ public class Bot_Tools : InteractiveBase
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
                     msgProperty.Embed = Embed("Oops. Looks like your fork app isnt online or connection timed out, please restart it.",40);
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    [Command("notify", RunMode = RunMode.Async)]
+    [Alias("notification")]
+    [Summary("Subscribe to your mc server notifications. usage: (prefix)notify [mention channel]")]
+    public async Task notify(SocketGuildChannel channel)
+    {
+        try
+        {
+            var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
+            if (server.CheckIfSubscribed(Context.Guild.Id) == true)
+            {
+                IMessageChannel chan = (IMessageChannel)Context.Guild.GetChannel(channel.Id);
+              var msgg =  await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this will be updated continuously", 20));
+                await msgg.PinAsync();
+                server.UpdateNotify(Context.Guild.Id, channel.Id,msgg.Id);
+                await msg.ModifyAsync(msgProperty =>
+                {
+                    msgProperty.Content = $"{Context.Message.Author.Mention}";
+                    msgProperty.Embed = Embed("Notification channel updated.", 20);
+                });
+                
+            }
+            else if (server.CheckIfSubscribed(Context.Guild.Id) == false)
+            {
+                IMessageChannel chan = (IMessageChannel)Context.Guild.GetChannel(channel.Id);
+                var msgg = await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this will be updated continuously", 20));
+                await msgg.PinAsync();
+                server.InsertNotify(Context.Guild.Id, channel.Id,msgg.Id);
+                await msg.ModifyAsync(msgProperty =>
+                {
+                    msgProperty.Content = $"{Context.Message.Author.Mention}";
+                    msgProperty.Embed = Embed("Notification channel submitted.", 20);
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    [Command("dnotify", RunMode = RunMode.Async)]
+    [Alias("dnotification")]
+    [Summary("Unsucbscribes to your mc server notifications. usage: (prefix)dnotify")]
+    public async Task dnotify()
+    {
+        try
+        {
+            var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
+            if (server.CheckIfSubscribed(Context.Guild.Id) == true)
+            {
+                server.RemoveNotify(Context.Guild.Id);
+                await msg.ModifyAsync(msgProperty =>
+                {
+                    msgProperty.Content = $"{Context.Message.Author.Mention}";
+                    msgProperty.Embed = Embed("Unsubscribed to notifications successfully.", 20);
+                });
+            }
+            else if (server.CheckIfSubscribed(Context.Guild.Id) == false)
+            {
+                await msg.ModifyAsync(msgProperty =>
+                {
+                    msgProperty.Content = $"{Context.Message.Author.Mention}";
+                    msgProperty.Embed = Embed("You are not subscribed to notifications.", 40);
                 });
             }
         }
