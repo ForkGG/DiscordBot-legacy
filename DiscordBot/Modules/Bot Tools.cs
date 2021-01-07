@@ -33,7 +33,7 @@ public class Bot_Tools : InteractiveBase
     public static Discord.Embed Embed(string msg, int status = 0)
     {
         var ebd = new EmbedBuilder();
-        if (status == 0) { Color Colorr = new Color(21, 22, 34); ebd.Color = Colorr;} else if (status == 200) { ebd.Color = Color.Green; } else if (status == 400) { ebd.Color = Color.Red; }
+        if (status == 0) { Color Colorr = new Color(21, 22, 34); ebd.Color = Colorr;} else if (status == 20 || status == 21) { ebd.Color = Color.Green; } else if (status == 40 || status == 44) { ebd.Color = Color.Red; }
         ebd.WithDescription($"{msg}");
         
         return ebd.Build();
@@ -137,6 +137,38 @@ public class Bot_Tools : InteractiveBase
             Console.WriteLine(ex.ToString());
         }
     }
+
+    [Command("start", RunMode = RunMode.Async)]
+    [Alias("start")]
+    [Summary("Starts your mc server. usage: (prefix)start [worldname]")]
+    public async Task start(string worldname)
+    {
+        try
+        {
+            var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
+            int result = await Sendmsg(Context.Guild.Id, $"start|{worldname}|{Context.User.Username}#{Context.User.Discriminator}|{Context.Channel.Id}|{msg.Id}");
+            if (result == 1)
+            {
+                await msg.ModifyAsync(msgProperty =>
+                {
+                    msgProperty.Content = $"{Context.Message.Author.Mention}";
+                    msgProperty.Embed = Embed("Command Executed.");
+                });
+            }
+            else if (result == 0)
+            {
+                await msg.ModifyAsync(msgProperty =>
+                {
+                    msgProperty.Content = $"{Context.Message.Author.Mention}";
+                    msgProperty.Embed = Embed("Oops. Looks like your fork app isnt online or connection timed out, please restart it.");
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
     [Command("ping", RunMode = RunMode.Async)]
         [Alias("latency")]
         [Summary("Shows the websocket connection's latency and time it takes to send a message. usage: (prefix)ping")]
@@ -171,6 +203,7 @@ public class Bot_Tools : InteractiveBase
                 {
                     server.InsertAuth(Context.Guild.Id, token,ip);
                     server.RemoveOnhold(token);
+                    await Sendmsg(Context.Guild.Id, "status|Linked");
                     await msg.ModifyAsync(msgProperty =>
                     {
                         msgProperty.Content = $"{Context.Message.Author.Mention}";
