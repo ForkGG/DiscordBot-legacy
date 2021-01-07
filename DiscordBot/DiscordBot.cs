@@ -102,7 +102,11 @@ using Microsoft.Extensions.DependencyInjection;
                             {
                                 AliveTokens.Add(token);
                                 Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress} Added to alive tokens list");
-                                await socket.Send("status|Linked");
+                               var guild = KKK.Client.GetGuild(serverr.GetServerForToken(token));
+                                if (guild != null) {
+                                    await socket.Send($"status|Linked|{guild.Name}");
+                                } else { await socket.Send($"status|Linked|null"); }
+                              
                             }
                           
                         }
