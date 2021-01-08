@@ -195,9 +195,9 @@ CREATE TABLE `Notify` (
                 }
             }
         }
-    /// <summary>Check if server have a subscribed to a channel notification
+    /// <summary>Check if server have a subscribed to a channel notification , int 0 for check, int 1 to return channelid
     /// </summary>
-    public bool CheckIfSubscribed(ulong serverid)
+    public object CheckIfSubscribed(ulong serverid,int num = 0)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
@@ -205,17 +205,33 @@ CREATE TABLE `Notify` (
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             sqlconn.Open();
-            using (var reader = cmd.ExecuteReader())
+            if (num == 0)
             {
-                if (reader.HasRows)
+
+                using (var reader = cmd.ExecuteReader())
                 {
-                    return true;
+                    if (reader.HasRows)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
-                else
+
+            }
+            else if (num == 1)
+            {
+                using (var reader = cmd.ExecuteReader())
                 {
-                    return false;
+                    while (reader.Read())
+                    {
+                        return (ulong)reader["Channelid"];
+                    }
                 }
             }
+            return 0;
         }
     }
     /// <summary>Check if channel or role is created already
