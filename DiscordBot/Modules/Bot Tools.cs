@@ -13,17 +13,31 @@ using Websocket.Client;
 
 public class Bot_Tools : InteractiveBase
     {
-    public static async Task NotificationControlAsync(ulong messageid, ulong channelid, string msg, int status)
+    /// <summary>Int 0 is to modify the message, int 1 is to send a new message
+    /// </summary>
+    public static async Task NotificationControlAsync(ulong messageid, ulong channelid, string msg, int status, int num = 0)
     {
         try 
         {
-            IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel(channelid);
-            IUserMessage themessage = (IUserMessage)await channel.GetMessageAsync(messageid);
-
-            await themessage.ModifyAsync(msgProperty =>
+            if (num == 0)
             {
-                msgProperty.Embed = Bot_Tools.Embed(msg, status);
-            });
+                IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel(channelid);
+                IUserMessage themessage = (IUserMessage)await channel.GetMessageAsync(messageid);
+
+                await themessage.ModifyAsync(msgProperty =>
+                {
+                    msgProperty.Embed = Embed(msg, status);
+                });
+
+            } else if (num == 1)
+            {
+                IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel(channelid);
+
+                await channel.SendMessageAsync(null, false, Embed(msg, status));
+              
+
+            }
+           
         }
         catch (Exception ex)
         {
@@ -178,7 +192,7 @@ public class Bot_Tools : InteractiveBase
         try
         {
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
-            if (server.CheckIfSubscribed(Context.Guild.Id) == true)
+            if ((bool)server.CheckIfSubscribed(Context.Guild.Id) == true)
             {
                 IMessageChannel chan = (IMessageChannel)Context.Guild.GetChannel(channel.Id);
               var msgg =  await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this will be updated continuously", 20));
@@ -191,7 +205,7 @@ public class Bot_Tools : InteractiveBase
                 });
                 
             }
-            else if (server.CheckIfSubscribed(Context.Guild.Id) == false)
+            else if ((bool)server.CheckIfSubscribed(Context.Guild.Id) == false)
             {
                 IMessageChannel chan = (IMessageChannel)Context.Guild.GetChannel(channel.Id);
                 var msgg = await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this will be updated continuously", 20));
@@ -217,7 +231,7 @@ public class Bot_Tools : InteractiveBase
         try
         {
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
-            if (server.CheckIfSubscribed(Context.Guild.Id) == true)
+            if ((bool)server.CheckIfSubscribed(Context.Guild.Id) == true)
             {
                 server.RemoveNotify(Context.Guild.Id);
                 await msg.ModifyAsync(msgProperty =>
@@ -226,7 +240,7 @@ public class Bot_Tools : InteractiveBase
                     msgProperty.Embed = Embed("Unsubscribed to notifications successfully.", 20);
                 });
             }
-            else if (server.CheckIfSubscribed(Context.Guild.Id) == false)
+            else if ((bool)server.CheckIfSubscribed(Context.Guild.Id) == false)
             {
                 await msg.ModifyAsync(msgProperty =>
                 {
