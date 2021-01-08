@@ -238,9 +238,10 @@ using Microsoft.Extensions.DependencyInjection;
                                                 switch(eventname)
                                                 {
                                                     case "pjoin":
-                                                      //  (ulong)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1)
-                                                      //channel.SendMessageAsync
                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1),$"***{playername}*** Just joined ***{servername}***",0,1);
+                                                        break;
+                                                    case "pleft":
+                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1), $"***{playername}*** Just left ***{servername}***", 0, 1);
                                                         break;
                                                 }
                                             }
