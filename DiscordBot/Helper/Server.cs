@@ -335,7 +335,7 @@ CREATE TABLE `Notify` (
         }
         return null;
     }
-    public ulong GetServerForToken(string token)
+    public long GetServerForToken(string token)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
@@ -347,7 +347,7 @@ CREATE TABLE `Notify` (
             {
                 while (reader.Read())
                 {
-                    return (ulong)reader["Serverid"];
+                    return (long)reader["Serverid"];
                 }
 
             }

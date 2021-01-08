@@ -48,7 +48,7 @@ using Microsoft.Extensions.DependencyInjection;
                             {
                                 if (AliveTokens.Contains((string)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 1)))
                                 {
-                                    var guild = KKK.Client.GetGuild(serverr.GetServerForToken(token));
+                                    var guild = KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token));
                                     await s.Send($"serverList");
 
                                 }}}}
@@ -143,18 +143,27 @@ using Microsoft.Extensions.DependencyInjection;
                                 {
                                     if (!AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)))
                                     {
-                                        AliveTokens.Add(token);
-                                        Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress} Added to alive tokens list");
-                                        var guild = KKK.Client.GetGuild(serverr.GetServerForToken(token));
-                                        if (guild != null)
+                                        try
                                         {
-                                            await socket.Send($"status|Linked|{guild.Name}");
-                                        }
-                                        else { await socket.Send($"status|Linked|null"); }
-                                        if ((bool)serverr.CheckIfSubscribed(guild.Id,0) == true)
+                                            AliveTokens.Add(token);
+                                            Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress}:{token} Added to alive tokens list");
+                                            var guild = KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token));
+
+                                            if (guild != null)
+                                            {
+                                                await socket.Send($"status|Linked|{guild.Name}");
+
+                                            }
+                                            else { await socket.Send($"status|Linked|null"); Console.WriteLine("Send"); }
+                                            if ((bool)serverr.CheckIfSubscribed(guild.Id, 0) == true)
+                                            {
+                                                await socket.Send($"subscribe|playerEvent");
+                                            }
+                                        } catch (Exception x)
                                         {
-                                            await socket.Send($"subscribe|playerEvent");
+                                            Console.WriteLine(x.ToString());
                                         }
+                                       
                                         }
 
                                 }
@@ -230,18 +239,18 @@ using Microsoft.Extensions.DependencyInjection;
                                     string playername = codes[3];
                                     try
                                     {
-                                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
+                                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
                                         {
                                             var guild = serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
-                                            if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)),1)) != null)
+                                            if (KKK.Client.GetGuild((ulong)guild).GetChannel((ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)),1)) != null)
                                             {
                                                 switch(eventname)
                                                 {
                                                     case "pjoin":
-                                                       await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1),$"***{playername}*** Just joined ***{servername}***",0,1);
+                                                       await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1),$"***{playername}*** Just joined ***{servername}***",0,1);
                                                         break;
                                                     case "pleft":
-                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1), $"***{playername}*** Just left ***{servername}***", 0, 1);
+                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1), $"***{playername}*** Just left ***{servername}***", 0, 1);
                                                         break;
                                                 }
                                             }
