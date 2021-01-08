@@ -49,7 +49,7 @@ using Microsoft.Extensions.DependencyInjection;
                                 if (AliveTokens.Contains((string)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 1)))
                                 {
                                     var guild = KKK.Client.GetGuild(serverr.GetServerForToken(token));
-                                    await s.Send($"serverList|{guild.Id}");
+                                    await s.Send($"serverList");
 
                                 }}}}
 
@@ -151,8 +151,11 @@ using Microsoft.Extensions.DependencyInjection;
                                             await socket.Send($"status|Linked|{guild.Name}");
                                         }
                                         else { await socket.Send($"status|Linked|null"); }
-
-                                    }
+                                        if ((bool)serverr.CheckIfSubscribed(guild.Id,0) == true)
+                                        {
+                                            await socket.Send($"subscribe|playerEvent");
+                                        }
+                                        }
 
                                 }
                                 break;
@@ -219,9 +222,37 @@ using Microsoft.Extensions.DependencyInjection;
 
                                 }
                                 break;
-                            case "serverList":
+                            case "event":
+                                var Do2 = Task.Run(async () =>
+                                {
+                                    string eventname = codes[1];
+                                    string servername = codes[2];
+                                    string playername = codes[3];
+                                    try
+                                    {
+                                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
+                                        {
+                                            var guild = serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
+                                            if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)),1)) != null)
+                                            {
+                                                switch(eventname)
+                                                {
+                                                    case "pjoin":
+                                                      //  (ulong)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1)
+                                                      //channel.SendMessageAsync
+                                                       await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed(serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1),$"***{playername}*** Just joined ***{servername}***",0,1);
+                                                        break;
+                                                }
+                                            }
+                                        }
+                                    } catch (Exception ex)
+                                    {
 
-                            default:
+                                    }
+                                });
+                               
+                                break;
+                                default:
                                 // ban ip in case gets to x requests To-DO
                                 Console.WriteLine($"Someone is trying to troll here, invalid packet: {message}");
                                 break;
