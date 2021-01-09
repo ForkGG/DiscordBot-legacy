@@ -262,7 +262,31 @@ using Microsoft.Extensions.DependencyInjection;
                                 });
                                
                                 break;
-                                default:
+                            case "serverList":
+                                var Do3 = Task.Run(async () =>
+                                {
+
+                                try
+                                {
+                                    if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
+                                    {
+                                        var guild = serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
+                                        if (KKK.Client.GetGuild((ulong)guild).GetChannel((ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1)) != null)
+                                        {
+                                            IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1));
+                                           await channel.SendMessageAsync(null,false,BuildServerListEmbed(message));
+
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+
+                                    }
+                                });
+
+                                break;
+                            default:
                                 // ban ip in case gets to x requests To-DO
                                 Console.WriteLine($"Someone is trying to troll here, invalid packet: {message}");
                                 break;
@@ -281,6 +305,56 @@ using Microsoft.Extensions.DependencyInjection;
 
             };
         });
+         static Discord.Embed BuildServerListEmbed(string msg)
+        {
+            string[] split = msg.Split('|');
+
+            //List<string> serverList = new List<string>();
+            string serverrr = null;
+            int i = 1;
+            while (i < split.Length - 5)
+            {
+                string serverName = split[i];
+                string serverType = split[i + 1];
+                string serverVersion = split[i + 2];
+                string serverStatus = split[i + 3];
+                string playerCount = split[i + 4];
+                string maxPlayers = split[i + 5];
+                //TODO replace these with custom cool looking emojis
+                string statusEmoji;
+                if (serverStatus.ToLower().Equals("running"))
+                {
+                    statusEmoji = ":green_circle:";
+                }
+                else if (serverStatus.ToLower().Equals("stopped"))
+                {
+                    statusEmoji = ":red_circle:";
+                }
+                else if (serverStatus.ToLower().Equals("starting"))
+                {
+                    statusEmoji = ":yellow_circle:";
+                }
+                else
+                {
+                    statusEmoji = ":black_circle:";
+                }
+
+                //TODO make serverType an emoji as well
+                //Code for serverType -> emoji
+
+                //Build server string
+                string server = $"{statusEmoji} {serverName} ({serverType} {serverVersion}) {playerCount}/{maxPlayers}" + Environment.NewLine;
+                serverrr += server;
+            }
+            var ebd = new EmbedBuilder();
+            Color Colorr = new Color(21, 22, 34);
+            ebd.WithDescription($"{serverrr}");
+
+            return ebd.Build();
+
+
+
+        }
         var config = BuildConfig();
             using (var services = ConfigureServices())
             {
