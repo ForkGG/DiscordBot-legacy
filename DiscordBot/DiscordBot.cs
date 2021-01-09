@@ -27,8 +27,9 @@ using Microsoft.Extensions.DependencyInjection;
     bool UpdateServer = false;
     public static async Task StartAsync()
         {
-            await new Discord_Bot().RunAsync();
+        await new Discord_Bot().RunAsync();   
         }
+   
    private async Task GetReadyWS()
     {
         if (!(UpdateServer == true))
@@ -172,7 +173,7 @@ using Microsoft.Extensions.DependencyInjection;
 
                                             }
                                             else { await socket.Send($"status|Linked|null"); }
-                                            if ((bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken(token), 0) == true)
+                                            if ((bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken(token)) == true)
                                             {
                                                 await socket.Send($"subscribe|playerEvent");
                                             }
@@ -260,15 +261,15 @@ using Microsoft.Extensions.DependencyInjection;
                                         if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
                                         {
 
-                                            if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))).GetChannel((ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1)) != null)
+                                            if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))).GetChannel((ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)))) != null)
                                             {
                                                 switch (eventname)
                                                 {
                                                     case "pjoin":
-                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1), $"***{playername}*** Just joined ***{servername}***", 0, 1);
+                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))), $"***{playername}*** Just joined ***{servername}***", 0, 1);
                                                         break;
                                                     case "pleft":
-                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1), $"***{playername}*** Just left ***{servername}***", 0, 1);
+                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))), $"***{playername}*** Just left ***{servername}***", 0, 1);
                                                         break;
                                                 }
                                             }
@@ -291,10 +292,11 @@ using Microsoft.Extensions.DependencyInjection;
                                         {
                                             ulong guild = (ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
                                             string token = (string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1);
-                                            if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.CheckIfSubscribed(guild, 1)) != null)
+                                            //if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.CheckIfSubscribed(guild, 1)) != null)
+                                            if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.GetSubbedChannel(guild)) != null)
                                             {
-                                                //IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1));
-                                                //await channel.SendMessageAsync(null, false, BuildServerListEmbed(message));
+                                                IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))));
+                                                await channel.SendMessageAsync(null, false, BuildServerListEmbed(message));
 
                                             }
                                         }
@@ -317,14 +319,14 @@ using Microsoft.Extensions.DependencyInjection;
                         }
 
                     }
-                    catch (Exception ex) { }
+                    catch (Exception ex) { Console.WriteLine(ex.ToString()); }
                 });
 
 
                 //Console.WriteLine(message);
 
                 //allSockets.ToList().ForEach(s => s.Send(message));
-
+            
             };
         });
         static Discord.Embed BuildServerListEmbed(string msg)
@@ -378,14 +380,14 @@ using Microsoft.Extensions.DependencyInjection;
 
         }
         var input = Console.ReadLine();
-        while (input != "exit")
-        {
-            //foreach (var socket in allSockets.ToList())
-            //{
-            //    await socket.Send(input);
-            //}
-            //input = Console.ReadLine();
-        }
+        //while (input != "exit")
+        //{
+        //    //foreach (var socket in allSockets.ToList())
+        //    //{
+        //    //    await socket.Send(input);
+        //    //}
+        //    //input = Console.ReadLine();
+        //}
     }
         private async Task RunAsync()
         {
@@ -401,7 +403,6 @@ using Microsoft.Extensions.DependencyInjection;
             await Task.Delay(Timeout.Infinite);
         }
         }
-
         private IConfiguration BuildConfig()
         {
             return new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("config.json").Build();

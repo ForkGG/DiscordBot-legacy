@@ -16,6 +16,6 @@ Fork Bot is starting
 ---------------------------------------------------------------");
 
             Discord_Bot.StartAsync().GetAwaiter().GetResult();
-
-        }
+       
+    }
     }
