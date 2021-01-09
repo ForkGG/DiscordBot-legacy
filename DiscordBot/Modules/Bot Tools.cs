@@ -73,12 +73,15 @@ public class Bot_Tools : InteractiveBase
             bool flag = false;
             while (flag == false)
             {
-                if (sw.ElapsedMilliseconds > timeout) { return 0; }
+                if (sw.ElapsedMilliseconds > timeout) { return 0; Console.WriteLine($"Connection Timeout for {ip}"); }
                 try
                 {
 
                     var socket = Discord_Bot.allSockets.Find(client => client.ConnectionInfo.ClientIpAddress == ip);
                     await socket.Send(msg);
+#if DEBUG
+Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
+#endif
                     return 1;
                 }
                 catch (Exception ex)
@@ -198,6 +201,7 @@ public class Bot_Tools : InteractiveBase
               var msgg =  await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this will be updated continuously", 20));
                 await msgg.PinAsync();
                 server.UpdateNotify(Context.Guild.Id, channel.Id,msgg.Id);
+                await Sendmsg(Context.Guild.Id, $"serverList");
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";

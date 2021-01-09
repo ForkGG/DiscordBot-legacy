@@ -14,7 +14,6 @@ using System.Net;
             Console.WriteLine(@"
 Fork Bot is starting
 ---------------------------------------------------------------");
-        Console.WriteLine();
 
             Discord_Bot.StartAsync().GetAwaiter().GetResult();
 

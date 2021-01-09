@@ -227,7 +227,7 @@ CREATE TABLE `Notify` (
                 {
                     while (reader.Read())
                     {
-                        return (ulong)reader["Channelid"];
+                        return (long)reader["Channelid"];
                     }
                 }
             }

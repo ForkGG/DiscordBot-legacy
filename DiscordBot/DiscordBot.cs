@@ -29,9 +29,8 @@ using Microsoft.Extensions.DependencyInjection;
         {
             await new Discord_Bot().RunAsync();
         }
-
-        private async Task RunAsync()
-        {
+   private async Task GetReadyWS()
+    {
         if (!(UpdateServer == true))
         {
             Updateserverlist = new System.Timers.Timer(120000);
@@ -51,16 +50,20 @@ using Microsoft.Extensions.DependencyInjection;
                                     var guild = KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token));
                                     await s.Send($"serverList");
 
-                                }}}}
+                                }
+                            }
+                        }
+                    }
 
-                           
 
-                } catch (Exception ex)
-                {
 
                 }
-            
-                };
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+
+            };
             Updateserverlist.AutoReset = true;
             Updateserverlist.Enabled = true;
             UpdateServer = true;
@@ -85,7 +88,17 @@ using Microsoft.Extensions.DependencyInjection;
         //    }
         //};
         Console.WriteLine("Checking if database exists...");
-     serverr.CreateIfNot();
+        serverr.CreateIfNot();
+        if (KKK.IsClientReady != true)
+        {
+            Console.WriteLine("Waiting for client to be ready..."); //Dont start events until discord api is ready
+        }
+        do
+        {
+            // nothing, just pauses the tasks
+        }
+        while (KKK.IsClientReady != true);
+        Console.WriteLine("Its ready, lets start, shall we?");
         var server = new WebSocketServer("ws://0.0.0.0:8181");
         server.Start(socket =>
         {
@@ -97,12 +110,12 @@ using Microsoft.Extensions.DependencyInjection;
                     var socket2 = allSockets.Find(client => client.ConnectionInfo.ClientIpAddress == socket.ConnectionInfo.ClientIpAddress);
                     try { allSockets.Remove(socket2); } catch (Exception ex) { } //Little security, dont let same ip to connect twice
                     allSockets.Add(socket);
-                    
+
                 }
                 else
                 {
                     try { allSockets.Remove(socket); } catch (Exception ex) { }
-                    allSockets.Add(socket); 
+                    allSockets.Add(socket);
                 }
             };
             socket.OnClose = () =>
@@ -117,7 +130,7 @@ using Microsoft.Extensions.DependencyInjection;
                         AliveTokens.Remove((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
                         Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress} Removed from alive tokens list");
                     }
-                   
+
                 }
             };
             socket.OnMessage = message =>
@@ -126,7 +139,9 @@ using Microsoft.Extensions.DependencyInjection;
                 {
                     try
                     {
-
+#if DEBUG
+                        Console.WriteLine($"Message Recieved: {message}");
+#endif
                         string[] codes = (message).Split('|');
                         switch (codes[0])
                         {
@@ -147,24 +162,27 @@ using Microsoft.Extensions.DependencyInjection;
                                         {
                                             AliveTokens.Add(token);
                                             Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress}:{token} Added to alive tokens list");
-                                            var guild = KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token));
-
-                                            if (guild != null)
+#if DEBUG
+                                            Console.WriteLine("Here is token: " + (ulong)serverr.GetServerForToken(token));
+#endif
+                                            if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token)) != null)
                                             {
+                                                var guild = KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token));
                                                 await socket.Send($"status|Linked|{guild.Name}");
 
                                             }
-                                            else { await socket.Send($"status|Linked|null"); Console.WriteLine("Send"); }
-                                            if ((bool)serverr.CheckIfSubscribed(guild.Id, 0) == true)
+                                            else { await socket.Send($"status|Linked|null"); }
+                                            if ((bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken(token), 0) == true)
                                             {
                                                 await socket.Send($"subscribe|playerEvent");
                                             }
-                                        } catch (Exception x)
+                                        }
+                                        catch (Exception x)
                                         {
                                             Console.WriteLine(x.ToString());
                                         }
-                                       
-                                        }
+
+                                    }
 
                                 }
                                 break;
@@ -241,13 +259,13 @@ using Microsoft.Extensions.DependencyInjection;
                                     {
                                         if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
                                         {
-                                            var guild = serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
-                                            if (KKK.Client.GetGuild((ulong)guild).GetChannel((ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)),1)) != null)
+
+                                            if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))).GetChannel((ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1)) != null)
                                             {
-                                                switch(eventname)
+                                                switch (eventname)
                                                 {
                                                     case "pjoin":
-                                                       await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1),$"***{playername}*** Just joined ***{servername}***",0,1);
+                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1), $"***{playername}*** Just joined ***{servername}***", 0, 1);
                                                         break;
                                                     case "pleft":
                                                         await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1), $"***{playername}*** Just left ***{servername}***", 0, 1);
@@ -255,33 +273,37 @@ using Microsoft.Extensions.DependencyInjection;
                                                 }
                                             }
                                         }
-                                    } catch (Exception ex)
+                                    }
+                                    catch (Exception ex)
                                     {
 
                                     }
                                 });
-                               
+
                                 break;
                             case "serverList":
                                 var Do3 = Task.Run(async () =>
                                 {
 
-                                try
-                                {
-                                    if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
+                                    try
                                     {
-                                        var guild = serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
-                                        if (KKK.Client.GetGuild((ulong)guild).GetChannel((ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1)) != null)
+                                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
                                         {
-                                            IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1));
-                                           await channel.SendMessageAsync(null,false,BuildServerListEmbed(message));
+                                            ulong guild = (ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
+                                            string token = (string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1);
+                                            if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.CheckIfSubscribed(guild, 1)) != null)
+                                            {
+                                                //IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1));
+                                                //await channel.SendMessageAsync(null, false, BuildServerListEmbed(message));
 
                                             }
                                         }
                                     }
                                     catch (Exception ex)
                                     {
-
+#if DEBUG
+                                        Console.WriteLine(ex.ToString());
+#endif
                                     }
                                 });
 
@@ -305,7 +327,7 @@ using Microsoft.Extensions.DependencyInjection;
 
             };
         });
-         static Discord.Embed BuildServerListEmbed(string msg)
+        static Discord.Embed BuildServerListEmbed(string msg)
         {
             string[] split = msg.Split('|');
 
@@ -355,24 +377,28 @@ using Microsoft.Extensions.DependencyInjection;
 
 
         }
-        var config = BuildConfig();
-            using (var services = ConfigureServices())
-            {
-                var client = services.GetRequiredService<DiscordSocketClient>();
-                services.GetRequiredService<LogService>();
-                await client.LoginAsync(TokenType.Bot, config["token"]);
-                await client.StartAsync();
-                await services.GetRequiredService<CommandHandler>().InitializeAsync();
-                await Task.Delay(Timeout.Infinite);
-            }
-             var input = Console.ReadLine();
+        var input = Console.ReadLine();
         while (input != "exit")
         {
-            foreach (var socket in allSockets.ToList())
-            {
-                socket.Send(input);
-            }
-            input = Console.ReadLine();
+            //foreach (var socket in allSockets.ToList())
+            //{
+            //    await socket.Send(input);
+            //}
+            //input = Console.ReadLine();
+        }
+    }
+        private async Task RunAsync()
+        {
+        var config = BuildConfig();
+        using (var services = ConfigureServices())
+        {
+            var client = services.GetRequiredService<DiscordSocketClient>();
+            services.GetRequiredService<LogService>();
+            await client.LoginAsync(TokenType.Bot, config["token"]);
+            await client.StartAsync();
+            await services.GetRequiredService<CommandHandler>().InitializeAsync();
+            await GetReadyWS();
+            await Task.Delay(Timeout.Infinite);
         }
         }
 

@@ -15,6 +15,7 @@ using Discord.WebSocket;
         public static string prefix = "$";
         public static CommandService CommandService;
     public static DiscordSocketClient Client;
+    public static bool IsClientReady = false;
 }
 
     public class CommandHandler
@@ -38,6 +39,7 @@ using Discord.WebSocket;
         KKK.Client.MessageReceived += HandleCommandAsync;
         KKK.Client.MessagesBulkDeleted += BulkDeleteAsync;
         KKK.Client.JoinedGuild += Joinedguild;
+        KKK.Client.Disconnected += Issues;
     }
     public static OverwritePermissions AdminPermissions()
     {
@@ -97,9 +99,13 @@ using Discord.WebSocket;
         {
             await Task.CompletedTask;
         }
-
+    public async Task Issues(Exception k)
+    {
+        KKK.IsClientReady = false;
+    }
         public async Task ready()
         {
+        KKK.IsClientReady = true;
             try
             {
                 var Do = Task.Run(() => { try { 
