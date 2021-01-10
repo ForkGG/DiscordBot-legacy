@@ -73,7 +73,7 @@ public class Bot_Tools : InteractiveBase
             bool flag = false;
             while (flag == false)
             {
-                if (sw.ElapsedMilliseconds > timeout) { return 0; Console.WriteLine($"Connection Timeout for {ip}"); }
+                if (sw.ElapsedMilliseconds > timeout) { Console.WriteLine($"Connection Timeout for {ip}"); return 0;  }
                 try
                 {
 
@@ -194,18 +194,28 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
     {
         try
         {
+            string token = (string)server.GetTokenOfServer(Context.Guild.Id);
+            string ip = (string)server.GetIPForToken(token, 2);
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
             if ((bool)server.CheckIfSubscribed(Context.Guild.Id) == true)
             {
                 IMessageChannel chan = (IMessageChannel)Context.Guild.GetChannel(channel.Id);
               var msgg =  await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this will be updated continuously", 20));
-                await msgg.PinAsync();
+                //await msgg.PinAsync();
                 server.UpdateNotify(Context.Guild.Id, channel.Id,msgg.Id);
-                await Sendmsg(Context.Guild.Id, $"serverList");
+                string warn = null;
+                if ( CheckConnection(ip) == true)
+                {
+                    await Sendmsg(Context.Guild.Id, $"serverList");
+                } else
+                {
+                    warn = Environment.NewLine + "Couldnt connect to your fork server but dont worry, ill tell your fork server to send me server list once its connected";
+                }
+                
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Notification channel updated.", 20);
+                    msgProperty.Embed = Embed($"Notification channel updated.{warn}", 20);
                 });
                 
             }
