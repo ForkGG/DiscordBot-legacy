@@ -48,9 +48,14 @@ using Microsoft.Extensions.DependencyInjection;
                             {
                                 if (AliveTokens.Contains((string)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 1)))
                                 {
-                                    var guild = KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token));
-                                    await s.Send($"serverList");
-
+                                    if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token)) != null)
+                                    {
+                                        await s.Send($"serverList");
+                                    }
+                                    else
+                                    {
+                                        await s.Send("status|OnHold");
+                                    }
                                 }
                             }
                         }
@@ -173,10 +178,10 @@ using Microsoft.Extensions.DependencyInjection;
 
                                             }
                                             else { await socket.Send($"status|Linked|null"); }
-                                            if ((bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken(token)) == true)
-                                            {
-                                                await socket.Send($"subscribe|playerEvent");
-                                            }
+                                            //if ((bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken(token),0) == true)
+                                            //{
+                                            //    await socket.Send($"subscribe|playerEvent");
+                                            //}
                                         }
                                         catch (Exception x)
                                         {
@@ -258,20 +263,24 @@ using Microsoft.Extensions.DependencyInjection;
                                     string playername = codes[3];
                                     try
                                     {
-                                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
+                                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true)
                                         {
-
+                                          
                                             if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))).GetChannel((ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)))) != null)
                                             {
-                                                switch (eventname)
+                                                if (eventname.StartsWith("p") && (bool)serverr.CheckIfNotifyExist((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
                                                 {
-                                                    case "pjoin":
-                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))), $"***{playername}*** Just joined ***{servername}***", 0, 1);
-                                                        break;
-                                                    case "pleave":
-                                                        await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))), $"***{playername}*** Just left ***{servername}***", 0, 1);
-                                                        break;
+                                                    switch (eventname)
+                                                    {
+                                                        case "pjoin":
+                                                            await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))), $"***{playername}*** Just joined ***{servername}***", 0, 1);
+                                                            break;
+                                                        case "pleave":
+                                                            await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))), $"***{playername}*** Just left ***{servername}***", 0, 1);
+                                                            break;
+                                                    }
                                                 }
+                                               
                                             }
                                         }
                                     }
@@ -288,13 +297,13 @@ using Microsoft.Extensions.DependencyInjection;
 
                                     try
                                     {
-                                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
+                                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)),1) == true)
                                         {
                                             ulong guild = (ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
                                             string token = (string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1);
-                                            if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.GetSubbedChannel(guild)) != null)
+                                            if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.GetSeventCH(guild)) != null)
                                             {
-                                                IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.GetSubbedChannel(guild));
+                                                IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.GetSeventCH(guild));
 
                                                 await channel.SendMessageAsync(null, false, BuildServerListEmbed(message));
                                             }
@@ -380,7 +389,7 @@ using Microsoft.Extensions.DependencyInjection;
             //Build server string
             string server = $"{statusEmoji} {serverName} ({serverType} {serverVersion}) {playerCount}/{maxPlayers}" + Environment.NewLine;
             serverrr += server;
-            i = i + 5;
+            i = i + 6;
         }
         var ebd = new EmbedBuilder();
         Color Colorr = new Color(21, 22, 34);

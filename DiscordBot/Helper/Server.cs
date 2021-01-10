@@ -34,9 +34,10 @@ CREATE TABLE `OnJoin` (
 	`Serverid`  INTEGER,
 	`Channelid` INTEGER,
 	`Roleid`    INTEGER,
+	`sevent`    INTEGER DEFAULT 1,
 	PRIMARY KEY(`ID` AUTOINCREMENT)
 );
-CREATE TABLE `Onhold` (
+            CREATE TABLE `Onhold` (
 
     `ID`    INTEGER,
 	`Token` TEXT,
@@ -88,6 +89,22 @@ CREATE TABLE `Notify` (
                 cmd.ExecuteNonQuery();
             }
         }
+    /// <summary>num (0) for pevents, num(1) for sevents
+    /// </summary>
+    public void UpdateSEvent(ulong serverid, int num)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+
+            string  insert = "UPDATE OnJoin SET sevent=@sevent WHERE Serverid=@serverid";
+
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            cmd.Parameters.AddWithValue("@sevent", num);
+            sqlconn.Open();
+            cmd.ExecuteNonQuery();
+        }
+    }
     public void RemoveNotify(ulong serverid)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
@@ -195,31 +212,56 @@ CREATE TABLE `Notify` (
                 }
             }
         }
-    /// <summary>Check if server have subscribed to a channel notification
+    /// <summary>Check if subscribed to notification
     /// </summary>
-    public bool CheckIfSubscribed(ulong serverid)
+    public bool CheckIfNotifyExist(ulong serverid)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
             string insert = "SELECT * FROM Notify WHERE Serverid=@serverid";
+
+
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             sqlconn.Open();
-          
 
-                using (var reader = cmd.ExecuteReader())
+
+            using (var reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
                 {
-                    if (reader.HasRows)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return true;
                 }
+                else
+                {
+                    return false;
+                }
+            }
         }
     }
+    /// <summary>This is for Server List events
+    /// </summary>
+    public long GetSeventCH(ulong serverid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = "SELECT * FROM OnJoin WHERE Serverid=@serverid";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            sqlconn.Open();
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    return (long)reader["Channelid"];
+                }
+            }
+        }
+        return 0;
+
+    }
+    /// <summary>This is for player events
+    /// </summary>
     public long GetSubbedChannel(ulong serverid)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
@@ -315,6 +357,19 @@ CREATE TABLE `Notify` (
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
             string insert = "DELETE FROM OnJoin WHERE Serverid = @serverid";
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            sqlconn.Open();
+            cmd.ExecuteNonQuery();
+        }
+    }
+    public void LeaveServer(ulong serverid)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = @"DELETE FROM Auth WHERE Serverid = @serverid;
+DELETE FROM Notify WHERE Serverid = @serverid;
+DELETE FROM OnJoin WHERE Serverid = @serverid;";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             sqlconn.Open();

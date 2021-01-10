@@ -197,7 +197,7 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
             string token = (string)server.GetTokenOfServer(Context.Guild.Id);
             string ip = (string)server.GetIPForToken(token, 2);
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
-            if ((bool)server.CheckIfSubscribed(Context.Guild.Id) == true)
+            if ((bool)server.CheckIfNotifyExist(Context.Guild.Id) == true)
             {
                 IMessageChannel chan = (IMessageChannel)Context.Guild.GetChannel(channel.Id);
               var msgg =  await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this will be updated continuously", 20));
@@ -219,11 +219,11 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                 });
                 
             }
-            else if ((bool)server.CheckIfSubscribed(Context.Guild.Id) == false)
+            else if ((bool)server.CheckIfNotifyExist(Context.Guild.Id) == false)
             {
                 IMessageChannel chan = (IMessageChannel)Context.Guild.GetChannel(channel.Id);
                 var msgg = await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this will be updated continuously", 20));
-                await msgg.PinAsync();
+                //await msgg.PinAsync();
                 server.InsertNotify(Context.Guild.Id, channel.Id,msgg.Id);
                 await msg.ModifyAsync(msgProperty =>
                 {
@@ -245,7 +245,7 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
         try
         {
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
-            if ((bool)server.CheckIfSubscribed(Context.Guild.Id) == true)
+            if ((bool)server.CheckIfNotifyExist(Context.Guild.Id) == true)
             {
                 server.RemoveNotify(Context.Guild.Id);
                 await msg.ModifyAsync(msgProperty =>
@@ -254,7 +254,7 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                     msgProperty.Embed = Embed("Unsubscribed to notifications successfully.", 20);
                 });
             }
-            else if ((bool)server.CheckIfSubscribed(Context.Guild.Id) == false)
+            else if ((bool)server.CheckIfNotifyExist(Context.Guild.Id) == false)
             {
                 await msg.ModifyAsync(msgProperty =>
                 {
@@ -268,6 +268,120 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
             Console.WriteLine(ex.ToString());
         }
     }
+    //[Command("sub", RunMode = RunMode.Async)]
+    //[Alias("subscribe")]
+    //[Summary("Subscribe to an event. usage: (prefix)sub")]
+    //public async Task sub(string eventname = "null",string onoff = "null")
+    //{
+    //    try
+    //    {
+    //        bool playerevent = server.CheckIfSubscribed(Context.Guild.Id, 0);
+    //        bool serverevent = server.CheckIfSubscribed(Context.Guild.Id, 1);
+    //        var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
+    //        if (eventname == "null")
+    //        {
+    //            await msg.ModifyAsync(msgProperty =>
+    //            {
+    //                string playerevents;
+    //                string serverevents;
+    //                if (playerevent == false) { playerevents = "Off"; } else { playerevents = "On"; }
+    //                if (serverevent == false) { serverevents = "Off"; } else { serverevents = "On"; }
+    //                msgProperty.Content = $"{Context.Message.Author.Mention}";
+    //                msgProperty.Embed = Embed($"Events:{Environment.NewLine}- Player Events (Join/Leave) : {playerevents}{Environment.NewLine}- Server Events (Server List) : {serverevents}{Environment.NewLine}Use `(prefix)sub [eventname] [on/off]` e.g `(prefix)sub [pevent] [on]` or `(prefix)sub [sevent] [on]`");
+    //            });
+    //        }
+    //        else
+    //        {
+    //            switch (eventname)
+    //            {
+
+    //            }
+    //        }
+            
+           
+    //        switch (msg2.Content.ToLower())
+    //        {
+    //            case "pevents on":
+    //                if (playerevent == false) { server.UpdateEvents(Context.Guild.Id, 0, 1);
+    //                    await msg.ModifyAsync(msgProperty =>
+    //                    {
+    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
+    //                        msgProperty.Embed = Embed($"Player events enabled", 20);
+    //                    });
+    //                } else
+    //                {
+    //                    await msg.ModifyAsync(msgProperty =>
+    //                    {
+    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
+    //                        msgProperty.Embed = Embed($"Player events is already on.",40);
+    //                    });
+    //                }
+    //                break;
+    //            case "pevents off":
+    //                if (playerevent == true)
+    //                {
+    //                    server.UpdateEvents(Context.Guild.Id, 0, 0);
+    //                    await msg.ModifyAsync(msgProperty =>
+    //                    {
+    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
+    //                        msgProperty.Embed = Embed($"Player events disabled", 20);
+    //                    });
+    //                }
+    //                else
+    //                {
+    //                    await msg.ModifyAsync(msgProperty =>
+    //                    {
+    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
+    //                        msgProperty.Embed = Embed($"Player events is already off.", 40);
+    //                    });
+    //                }
+    //                break;
+    //            case "sevents on":
+    //                if (serverevent == false)
+    //                {
+    //                    server.UpdateEvents(Context.Guild.Id, 1, 1);
+    //                    await msg.ModifyAsync(msgProperty =>
+    //                    {
+    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
+    //                        msgProperty.Embed = Embed($"Server events enabled.", 20);
+    //                    });
+    //                }
+    //                else
+    //                {
+    //                    await msg.ModifyAsync(msgProperty =>
+    //                    {
+    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
+    //                        msgProperty.Embed = Embed($"Server events is already on.", 40);
+    //                    });
+    //                }
+    //                break;
+    //            case "sevents off":
+    //                if (serverevent == false)
+    //                {
+    //                    server.UpdateEvents(Context.Guild.Id, 1, 0);
+    //                    await msg.ModifyAsync(msgProperty =>
+    //                    {
+    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
+    //                        msgProperty.Embed = Embed($"Server events enabled.", 20);
+    //                    });
+    //                }
+    //                else
+    //                {
+    //                    await msg.ModifyAsync(msgProperty =>
+    //                    {
+    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
+    //                        msgProperty.Embed = Embed($"Server events is already on.", 40);
+    //                    });
+    //                }
+    //                break;
+
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Console.WriteLine(ex.ToString());
+    //    }
+    //}
     [Command("ping", RunMode = RunMode.Async)]
         [Alias("latency")]
         [Summary("Shows the websocket connection's latency and time it takes to send a message. usage: (prefix)ping")]
@@ -327,6 +441,56 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                 });
             }
           
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
+    [Command("leave", RunMode = RunMode.Async)]
+    [Alias("leave")]
+    [Summary("Bot will leaves discord server. *be aware, it deletes all guild records in the db* usage: (prefix)leave")]
+    public async Task leave()
+    {
+        try
+        {
+            
+            var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed($"Please type `{Context.Guild.Name}` to confirm.{Environment.NewLine}Be aware this process cant be recovered.{Environment.NewLine}Type anything else to cancel."));
+            var msgg = await NextMessageAsync(true, true, TimeSpan.FromMinutes(1));
+               if (msgg.Content == Context.Guild.Name)
+            {
+                if ((bool)server.CheckRoleAndChannel(Context.Guild.Id) == true)
+                {
+                    try
+                    {
+                        var channel = Context.Guild.GetChannel((ulong)server.GetRoleandChannel(Context.Guild.Id, 1));
+                        await channel.DeleteAsync();
+                        var Role = Context.Guild.GetRole((ulong)server.GetRoleandChannel(Context.Guild.Id, 0));
+                      await  Role.DeleteAsync();
+                    } catch (Exception ex)
+                    {
+
+                    }
+                    
+                }
+                    server.LeaveServer(Context.Guild.Id);
+               await ReplyAsync(Context.Message.Author.Mention, false, Embed($"Sad to see you go.., good bye!",20));
+                try
+                {
+                    await Sendmsg(Context.Guild.Id, $"status|OnHold");
+                    await Context.Guild.LeaveAsync();
+                } catch (Exception ex)
+                {
+                    await Context.Guild.LeaveAsync();
+                }
+               
+
+              
+            }
+            else
+            {
+                await ReplyAsync(Context.Message.Author.Mention, false, Embed($"Canceled.",20));
+            }
         }
         catch (Exception ex)
         {
