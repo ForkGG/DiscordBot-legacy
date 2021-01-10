@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Discord.Commands;
+using System;
 using System.Data.SQLite;
 using System.Net;
 
@@ -89,9 +90,9 @@ CREATE TABLE `Notify` (
                 cmd.ExecuteNonQuery();
             }
         }
-    /// <summary>num (0) for pevents, num(1) for sevents
+    /// <summary>Update server event
     /// </summary>
-    public void UpdateSEvent(ulong serverid, int num)
+    public void UpdateSEvent(ulong serverid,int num)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
@@ -212,6 +213,41 @@ CREATE TABLE `Notify` (
                 }
             }
         }
+    /// <summary>Check if onjoin is created num 0, num 1 to check if its enabled
+    /// </summary>
+    public bool CheckSevent(ulong serverid, int num = 0)
+    {
+        using (var sqlconn = new SQLiteConnection(connectionstr))
+        {
+            string insert = null;
+            if (num == 0)
+            {
+                insert = "SELECT * FROM OnJoin WHERE Serverid=@serverid";
+            } else
+            {
+                insert = "SELECT * FROM OnJoin WHERE Serverid=@serverid AND sevent = 1";
+            }
+          
+
+
+            var cmd = new SQLiteCommand(insert, sqlconn);
+            cmd.Parameters.AddWithValue("@serverid", serverid);
+            sqlconn.Open();
+
+
+            using (var reader = cmd.ExecuteReader())
+            {
+                if (reader.HasRows)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+    }
     /// <summary>Check if subscribed to notification
     /// </summary>
     public bool CheckIfNotifyExist(ulong serverid)

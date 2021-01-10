@@ -189,7 +189,7 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
     }
     [Command("notify", RunMode = RunMode.Async)]
     [Alias("notification")]
-    [Summary("Subscribe to your mc server notifications. usage: (prefix)notify [mention channel]")]
+    [Summary("Subscribe to your mc server notifications, (player join/leave) usage: (prefix)notify [mention channel]")]
     public async Task notify(SocketGuildChannel channel)
     {
         try
@@ -206,7 +206,7 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                 string warn = null;
                 if ( CheckConnection(ip) == true)
                 {
-                    await Sendmsg(Context.Guild.Id, $"serverList");
+                    await Sendmsg(Context.Guild.Id, $"subscribe|playerEvent");
                 } else
                 {
                     warn = Environment.NewLine + "Couldnt connect to your fork server but dont worry, ill tell your fork server to send me server list once its connected";
@@ -244,10 +244,17 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
     {
         try
         {
+            string token = (string)server.GetTokenOfServer(Context.Guild.Id);
+            string ip = (string)server.GetIPForToken(token, 2);
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
             if ((bool)server.CheckIfNotifyExist(Context.Guild.Id) == true)
             {
                 server.RemoveNotify(Context.Guild.Id);
+                 string warn = null;
+                if (CheckConnection(ip) == true)
+                {
+                    await Sendmsg(Context.Guild.Id, $"unsub|playerEvent");
+                }
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
@@ -268,120 +275,91 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
             Console.WriteLine(ex.ToString());
         }
     }
-    //[Command("sub", RunMode = RunMode.Async)]
-    //[Alias("subscribe")]
-    //[Summary("Subscribe to an event. usage: (prefix)sub")]
-    //public async Task sub(string eventname = "null",string onoff = "null")
-    //{
-    //    try
-    //    {
-    //        bool playerevent = server.CheckIfSubscribed(Context.Guild.Id, 0);
-    //        bool serverevent = server.CheckIfSubscribed(Context.Guild.Id, 1);
-    //        var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
-    //        if (eventname == "null")
-    //        {
-    //            await msg.ModifyAsync(msgProperty =>
-    //            {
-    //                string playerevents;
-    //                string serverevents;
-    //                if (playerevent == false) { playerevents = "Off"; } else { playerevents = "On"; }
-    //                if (serverevent == false) { serverevents = "Off"; } else { serverevents = "On"; }
-    //                msgProperty.Content = $"{Context.Message.Author.Mention}";
-    //                msgProperty.Embed = Embed($"Events:{Environment.NewLine}- Player Events (Join/Leave) : {playerevents}{Environment.NewLine}- Server Events (Server List) : {serverevents}{Environment.NewLine}Use `(prefix)sub [eventname] [on/off]` e.g `(prefix)sub [pevent] [on]` or `(prefix)sub [sevent] [on]`");
-    //            });
-    //        }
-    //        else
-    //        {
-    //            switch (eventname)
-    //            {
+    [Command("sub", RunMode = RunMode.Async)]
+    [Alias("subscribe")]
+    [Summary("Subscribe to an event. usage: (prefix)sub")]
+    public async Task sub(bool check)
+    {
+        try
+        {
+            string token = (string)server.GetTokenOfServer(Context.Guild.Id);
+            string ip = (string)server.GetIPForToken(token, 2);
+            int truefalse = 0;
+            if (check == true) { truefalse = 1; } else { truefalse = 0; }
+            var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
+            if ((bool)server.CheckSevent(Context.Guild.Id) == true)
+            {
+               if (check == true)
+                {
+                    if (!server.CheckSevent(Context.Guild.Id,1) == true)
+                    {
+                        server.UpdateSEvent(Context.Guild.Id, truefalse);
+                        string warn = null;
+                        if (CheckConnection(ip) == true)
+                        {
+                            await Sendmsg(Context.Guild.Id, $"subscribe|playerEvent");
+                        }
+                        else
+                        {
+                            warn = Environment.NewLine + "Couldnt connect to your fork server but dont worry, ill tell your fork server to enable player events once its connected";
+                        }
 
-    //            }
-    //        }
-            
-           
-    //        switch (msg2.Content.ToLower())
-    //        {
-    //            case "pevents on":
-    //                if (playerevent == false) { server.UpdateEvents(Context.Guild.Id, 0, 1);
-    //                    await msg.ModifyAsync(msgProperty =>
-    //                    {
-    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
-    //                        msgProperty.Embed = Embed($"Player events enabled", 20);
-    //                    });
-    //                } else
-    //                {
-    //                    await msg.ModifyAsync(msgProperty =>
-    //                    {
-    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
-    //                        msgProperty.Embed = Embed($"Player events is already on.",40);
-    //                    });
-    //                }
-    //                break;
-    //            case "pevents off":
-    //                if (playerevent == true)
-    //                {
-    //                    server.UpdateEvents(Context.Guild.Id, 0, 0);
-    //                    await msg.ModifyAsync(msgProperty =>
-    //                    {
-    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
-    //                        msgProperty.Embed = Embed($"Player events disabled", 20);
-    //                    });
-    //                }
-    //                else
-    //                {
-    //                    await msg.ModifyAsync(msgProperty =>
-    //                    {
-    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
-    //                        msgProperty.Embed = Embed($"Player events is already off.", 40);
-    //                    });
-    //                }
-    //                break;
-    //            case "sevents on":
-    //                if (serverevent == false)
-    //                {
-    //                    server.UpdateEvents(Context.Guild.Id, 1, 1);
-    //                    await msg.ModifyAsync(msgProperty =>
-    //                    {
-    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
-    //                        msgProperty.Embed = Embed($"Server events enabled.", 20);
-    //                    });
-    //                }
-    //                else
-    //                {
-    //                    await msg.ModifyAsync(msgProperty =>
-    //                    {
-    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
-    //                        msgProperty.Embed = Embed($"Server events is already on.", 40);
-    //                    });
-    //                }
-    //                break;
-    //            case "sevents off":
-    //                if (serverevent == false)
-    //                {
-    //                    server.UpdateEvents(Context.Guild.Id, 1, 0);
-    //                    await msg.ModifyAsync(msgProperty =>
-    //                    {
-    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
-    //                        msgProperty.Embed = Embed($"Server events enabled.", 20);
-    //                    });
-    //                }
-    //                else
-    //                {
-    //                    await msg.ModifyAsync(msgProperty =>
-    //                    {
-    //                        msgProperty.Content = $"{Context.Message.Author.Mention}";
-    //                        msgProperty.Embed = Embed($"Server events is already on.", 40);
-    //                    });
-    //                }
-    //                break;
+                        await msg.ModifyAsync(msgProperty =>
+                        {
+                            msgProperty.Content = $"{Context.Message.Author.Mention}";
+                            msgProperty.Embed = Embed($"Enabled successfully.{warn}", 20);
+                        });
+                    }
+                    else
+                    {
+                        await msg.ModifyAsync(msgProperty =>
+                        {
+                            msgProperty.Content = $"{Context.Message.Author.Mention}";
+                            msgProperty.Embed = Embed($"Already enabled.",40);
+                        });
+                    }
+                }
+               else if (check == false)
+                {
+                    if (server.CheckSevent(Context.Guild.Id, 1) == true)
+                    {
+                        server.UpdateSEvent(Context.Guild.Id, truefalse);
+                        if (CheckConnection(ip) == true)
+                        {
+                            await Sendmsg(Context.Guild.Id, $"unsub|serverListEvent");
+                        }
+                        await msg.ModifyAsync(msgProperty =>
+                        {
+                            msgProperty.Content = $"{Context.Message.Author.Mention}";
+                            msgProperty.Embed = Embed($"Disabled successfully.", 20);
+                        });
+                    }
+                    else
+                    {
+                        await msg.ModifyAsync(msgProperty =>
+                        {
+                            msgProperty.Content = $"{Context.Message.Author.Mention}";
+                            msgProperty.Embed = Embed($"Already disabled.", 40);
+                        });
+                    }
+                }
+            } else
+            {
+                await msg.ModifyAsync(msgProperty =>
+                {
+                    msgProperty.Content = $"{Context.Message.Author.Mention}";
+                    msgProperty.Embed = Embed($"Please use $rec and retry", 40);
+                });
+            }
 
-    //        }
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        Console.WriteLine(ex.ToString());
-    //    }
-    //}
+
+        
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+    }
     [Command("ping", RunMode = RunMode.Async)]
         [Alias("latency")]
         [Summary("Shows the websocket connection's latency and time it takes to send a message. usage: (prefix)ping")]

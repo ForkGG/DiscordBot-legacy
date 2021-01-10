@@ -23,8 +23,8 @@ using Microsoft.Extensions.DependencyInjection;
     /// <summary>Connected Tokens
     /// </summary>
     public static List<string> AliveTokens { get; set; } = new List<string>();
-    public System.Timers.Timer Updateserverlist;
-    bool UpdateServer = false;
+    //public System.Timers.Timer Updateserverlist;
+    //bool UpdateServer = false;
     public static async Task StartAsync()
         {
         await new Discord_Bot().RunAsync();   
@@ -32,48 +32,48 @@ using Microsoft.Extensions.DependencyInjection;
    
    private async Task GetReadyWS()
     {
-        if (!(UpdateServer == true))
-        {
-            Updateserverlist = new System.Timers.Timer(120000);
-            Updateserverlist.Elapsed += async (sender, e) =>
-            {
-                try
-                {
-                    foreach (IWebSocketConnection s in allSockets)
-                    {
-                        if ((bool)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 0) == true)
-                        {
-                            string token = (string)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 1);
-                            if ((bool)serverr.CheckAuth2(token, s.ConnectionInfo.ClientIpAddress) == true &&  ((bool)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 0) == true))
-                            {
-                                if (AliveTokens.Contains((string)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 1)))
-                                {
-                                    if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token)) != null)
-                                    {
-                                        await s.Send($"serverList");
-                                    }
-                                    else
-                                    {
-                                        await s.Send("status|OnHold");
-                                    }
-                                }
-                            }
-                        }
-                    }
+        //if (!(UpdateServer == true))
+        //{
+        //    Updateserverlist = new System.Timers.Timer(120000);
+        //    Updateserverlist.Elapsed += async (sender, e) =>
+        //    {
+        //        try
+        //        {
+        //            foreach (IWebSocketConnection s in allSockets)
+        //            {
+        //                if ((bool)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 0) == true)
+        //                {
+        //                    string token = (string)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 1);
+        //                    if ((bool)serverr.CheckAuth2(token, s.ConnectionInfo.ClientIpAddress) == true &&  ((bool)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 0) == true))
+        //                    {
+        //                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 1)))
+        //                        {
+        //                            if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token)) != null)
+        //                            {
+        //                                await s.Send($"serverList");
+        //                            }
+        //                            else
+        //                            {
+        //                                await s.Send("status|OnHold");
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
 
 
 
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine(ex.ToString());
+        //        }
 
-            };
-            Updateserverlist.AutoReset = true;
-            Updateserverlist.Enabled = true;
-            UpdateServer = true;
-        }
+        //    };
+        //    Updateserverlist.AutoReset = true;
+        //    Updateserverlist.Enabled = true;
+        //    UpdateServer = true;
+        //}
         //ILog logger = LogManager.GetLogger(typeof(FleckLog));
         FleckLog.Level = LogLevel.Debug;
         //FleckLog.LogAction = (level, message, ex) => {
@@ -178,10 +178,13 @@ using Microsoft.Extensions.DependencyInjection;
 
                                             }
                                             else { await socket.Send($"status|Linked|null"); }
-                                            //if ((bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken(token),0) == true)
-                                            //{
-                                            //    await socket.Send($"subscribe|playerEvent");
-                                            //}
+                                            if ((bool)serverr.CheckIfNotifyExist((ulong)serverr.GetServerForToken(token)) == true)
+                                            {
+                                                await socket.Send($"subscribe|playerEvent");
+                                            }
+                                            if (serverr.CheckSevent((ulong)serverr.GetServerForToken(token),0) == true && (serverr.CheckSevent((ulong)serverr.GetServerForToken(token),1) == true)){
+                                                await socket.Send($"subscribe|serverListEvent");
+                                            }
                                         }
                                         catch (Exception x)
                                         {
@@ -280,44 +283,44 @@ using Microsoft.Extensions.DependencyInjection;
                                                             break;
                                                     }
                                                 }
-                                               
-                                            }
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
+                                               else if (eventname.StartsWith("serverList") && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)),0) == true && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1) == true)
+                                                {
+                                                    var Do3 = Task.Run(async () =>
+                                                    {
 
-                                    }
-                                });
+                                                        try
+                                                        {
+                                                            if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 0) == true && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1) == true)
+                                                            {
+                                                                ulong guild = (ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
+                                                                string token = (string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1);
+                                                                if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.GetSeventCH(guild)) != null)
+                                                                {
+                                                                    IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.GetSeventCH(guild));
 
-                                break;
-                            case "serverList":
-                                var Do3 = Task.Run(async () =>
-                                {
-
-                                    try
-                                    {
-                                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckIfSubscribed((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)),1) == true)
-                                        {
-                                            ulong guild = (ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
-                                            string token = (string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1);
-                                            if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.GetSeventCH(guild)) != null)
-                                            {
-                                                IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.GetSeventCH(guild));
-
-                                                await channel.SendMessageAsync(null, false, BuildServerListEmbed(message));
-                                            }
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
+                                                                    await channel.SendMessageAsync(null, false, BuildServerListEmbed(message));
+                                                                }
+                                                            }
+                                                        }
+                                                        catch (Exception ex)
+                                                        {
 #if DEBUG
-                                        Console.WriteLine(ex.ToString());
+                                                            Console.WriteLine(ex.ToString());
 #endif
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+
                                     }
                                 });
 
                                 break;
+                          
                             default:
                                 // ban ip in case gets to x requests To-DO
                                 Console.WriteLine($"Someone is trying to troll here, invalid packet: {message}");
@@ -353,8 +356,7 @@ using Microsoft.Extensions.DependencyInjection;
 
         //List<string> serverList = new List<string>();
         string serverrr = null;
-        int i = 1;
-        Console.WriteLine("In embed");
+        int i = 2;
         while (i < split.Length - 5)
         {
             string serverName = split[i];
