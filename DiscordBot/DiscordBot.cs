@@ -44,7 +44,7 @@ using Microsoft.Extensions.DependencyInjection;
                         if ((bool)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 0) == true)
                         {
                             string token = (string)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 1);
-                            if ((bool)serverr.CheckAuth2(token, s.ConnectionInfo.ClientIpAddress) == true)
+                            if ((bool)serverr.CheckAuth2(token, s.ConnectionInfo.ClientIpAddress) == true &&  ((bool)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 0) == true))
                             {
                                 if (AliveTokens.Contains((string)serverr.CheckIfIPExist(s.ConnectionInfo.ClientIpAddress, 1)))
                                 {
@@ -268,7 +268,7 @@ using Microsoft.Extensions.DependencyInjection;
                                                     case "pjoin":
                                                         await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))), $"***{playername}*** Just joined ***{servername}***", 0, 1);
                                                         break;
-                                                    case "pleft":
+                                                    case "pleave":
                                                         await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))), $"***{playername}*** Just left ***{servername}***", 0, 1);
                                                         break;
                                                 }
@@ -292,12 +292,11 @@ using Microsoft.Extensions.DependencyInjection;
                                         {
                                             ulong guild = (ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
                                             string token = (string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1);
-                                            //if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.CheckIfSubscribed(guild, 1)) != null)
                                             if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.GetSubbedChannel(guild)) != null)
                                             {
-                                                IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))));
-                                                await channel.SendMessageAsync(null, false, BuildServerListEmbed(message));
+                                                IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.GetSubbedChannel(guild));
 
+                                                await channel.SendMessageAsync(null, false, BuildServerListEmbed(message));
                                             }
                                         }
                                     }
@@ -329,67 +328,70 @@ using Microsoft.Extensions.DependencyInjection;
             
             };
         });
-        static Discord.Embed BuildServerListEmbed(string msg)
-        {
-            string[] split = msg.Split('|');
-
-            //List<string> serverList = new List<string>();
-            string serverrr = null;
-            int i = 1;
-            while (i < split.Length - 5)
-            {
-                string serverName = split[i];
-                string serverType = split[i + 1];
-                string serverVersion = split[i + 2];
-                string serverStatus = split[i + 3];
-                string playerCount = split[i + 4];
-                string maxPlayers = split[i + 5];
-                //TODO replace these with custom cool looking emojis
-                string statusEmoji;
-                if (serverStatus.ToLower().Equals("running"))
-                {
-                    statusEmoji = ":green_circle:";
-                }
-                else if (serverStatus.ToLower().Equals("stopped"))
-                {
-                    statusEmoji = ":red_circle:";
-                }
-                else if (serverStatus.ToLower().Equals("starting"))
-                {
-                    statusEmoji = ":yellow_circle:";
-                }
-                else
-                {
-                    statusEmoji = ":black_circle:";
-                }
-
-                //TODO make serverType an emoji as well
-                //Code for serverType -> emoji
-
-                //Build server string
-                string server = $"{statusEmoji} {serverName} ({serverType} {serverVersion}) {playerCount}/{maxPlayers}" + Environment.NewLine;
-                serverrr += server;
-            }
-            var ebd = new EmbedBuilder();
-            Color Colorr = new Color(21, 22, 34);
-            ebd.WithDescription($"{serverrr}");
-
-            return ebd.Build();
-
-
-
-        }
         var input = Console.ReadLine();
-        //while (input != "exit")
-        //{
-        //    //foreach (var socket in allSockets.ToList())
-        //    //{
-        //    //    await socket.Send(input);
-        //    //}
-        //    //input = Console.ReadLine();
-        //}
+        while (input != "exit")
+        {
+            //foreach (var socket in allSockets.ToList())
+            //{
+            //    await socket.Send(input);
+            //}
+            //input = Console.ReadLine();
+        }
     }
-        private async Task RunAsync()
+    private static Discord.Embed BuildServerListEmbed(string msg)
+    {
+        string[] split = msg.Split('|');
+
+        //List<string> serverList = new List<string>();
+        string serverrr = null;
+        int i = 1;
+        Console.WriteLine("In embed");
+        while (i < split.Length - 5)
+        {
+            string serverName = split[i];
+            Console.WriteLine(serverName);
+            string serverType = split[i + 1];
+            string serverVersion = split[i + 2];
+            string serverStatus = split[i + 3];
+            string playerCount = split[i + 4];
+            string maxPlayers = split[i + 5];
+            //TODO replace these with custom cool looking emojis
+            string statusEmoji;
+            if (serverStatus.ToLower().Equals("running"))
+            {
+                statusEmoji = ":green_circle:";
+            }
+            else if (serverStatus.ToLower().Equals("stopped"))
+            {
+                statusEmoji = ":red_circle:";
+            }
+            else if (serverStatus.ToLower().Equals("starting"))
+            {
+                statusEmoji = ":yellow_circle:";
+            }
+            else
+            {
+                statusEmoji = ":black_circle:";
+            }
+
+            //TODO make serverType an emoji as well
+            //Code for serverType -> emoji
+
+            //Build server string
+            string server = $"{statusEmoji} {serverName} ({serverType} {serverVersion}) {playerCount}/{maxPlayers}" + Environment.NewLine;
+            serverrr += server;
+            i = i + 5;
+        }
+        var ebd = new EmbedBuilder();
+        Color Colorr = new Color(21, 22, 34);
+        ebd.WithDescription($"{serverrr}");
+
+        return ebd.Build();
+
+
+
+    }
+    private async Task RunAsync()
         {
         var config = BuildConfig();
         using (var services = ConfigureServices())
@@ -399,7 +401,8 @@ using Microsoft.Extensions.DependencyInjection;
             await client.LoginAsync(TokenType.Bot, config["token"]);
             await client.StartAsync();
             await services.GetRequiredService<CommandHandler>().InitializeAsync();
-            await GetReadyWS();
+           await Task.Run(async () => await GetReadyWS());
+            
             await Task.Delay(Timeout.Infinite);
         }
         }
