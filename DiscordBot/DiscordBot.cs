@@ -294,11 +294,32 @@ using Microsoft.Extensions.DependencyInjection;
                                                             {
                                                                 ulong guild = (ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
                                                                 string token = (string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1);
-                                                                if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.GetSeventCH(guild)) != null)
+                                                                if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.GetSeventCH(guild,0)) != null)
                                                                 {
-                                                                    IMessageChannel channel = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.GetSeventCH(guild));
-
-                                                                    await channel.SendMessageAsync(null, false, BuildServerListEmbed(message));
+                                                                    if ((ulong)serverr.GetSeventCH(guild, 1) != 0)
+                                                                    {
+                                                                        IMessageChannel chan = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.GetSeventCH(guild, 0));
+                                                                        IUserMessage msg = (IUserMessage)await chan.GetMessageAsync((ulong)serverr.GetSeventCH(guild, 1));
+                                                                        if (msg != null)
+                                                                        {
+                                                                            await msg.ModifyAsync(msgProperty =>
+                                                                            {
+                                                                                msgProperty.Embed = BuildServerListEmbed(message);
+                                                                            });
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            var msgg = await chan.SendMessageAsync(null, false, Bot_Tools.Embed("Dont remove this message, this message will be updated continuously", 20));
+                                                                            serverr.UpdateSEvent(guild, msgg.Id, 1);
+                                                                            await msgg.ModifyAsync(msgProperty =>
+                                                                            {
+                                                                                msgProperty.Embed = BuildServerListEmbed(message);
+                                                                            });
+                                                                        }
+                                                                    }
+                                                                  
+                                                                 
+                                                                  
                                                                 }
                                                             }
                                                         }
@@ -360,7 +381,6 @@ using Microsoft.Extensions.DependencyInjection;
         while (i < split.Length - 5)
         {
             string serverName = split[i];
-            Console.WriteLine(serverName);
             string serverType = split[i + 1];
             string serverVersion = split[i + 2];
             string serverStatus = split[i + 3];
@@ -396,7 +416,7 @@ using Microsoft.Extensions.DependencyInjection;
         var ebd = new EmbedBuilder();
         Color Colorr = new Color(21, 22, 34);
         ebd.WithDescription($"{serverrr}");
-
+        ebd.WithCurrentTimestamp();
         return ebd.Build();
 
 
