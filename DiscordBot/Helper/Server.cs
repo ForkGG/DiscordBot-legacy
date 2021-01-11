@@ -36,6 +36,7 @@ CREATE TABLE `OnJoin` (
 	`Channelid` INTEGER,
 	`Roleid`    INTEGER,
 	`sevent`    INTEGER DEFAULT 1,
+	`Messageid` INTEGER,
 	PRIMARY KEY(`ID` AUTOINCREMENT)
 );
             CREATE TABLE `Onhold` (
@@ -50,7 +51,6 @@ CREATE TABLE `Notify` (
     `ID`    INTEGER,
 	`Serverid`  INTEGER,
 	`Channelid` INTEGER,
-	`Messageid` INTEGER,
 	PRIMARY KEY(`ID` AUTOINCREMENT)
 );
             ";
@@ -64,44 +64,43 @@ CREATE TABLE `Notify` (
             Console.WriteLine("Created a new database");
         } else { Console.WriteLine("Database exists."); }
     }
-    public void InsertNotify(ulong serverid, ulong channelid, ulong messageid)
+    public void InsertNotify(ulong serverid, ulong channelid)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            string insert = "INSERT INTO Notify(Serverid,Channelid,Messageid) VALUES (@serverid,@channelid,@messageid)";
+            string insert = "INSERT INTO Notify(Serverid,Channelid) VALUES (@serverid,@channelid,@messageid)";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             cmd.Parameters.AddWithValue("@channelid", channelid);
-            cmd.Parameters.AddWithValue("@messageid", messageid);
             sqlconn.Open();
             cmd.ExecuteNonQuery();
         }
     }
-    public void UpdateNotify(ulong serverid, ulong channelid,ulong messageid)
+    public void UpdateNotify(ulong serverid, ulong channelid)
         {
             using (var sqlconn = new SQLiteConnection(connectionstr))
             {
-                string insert = "UPDATE Notify SET Channelid=@channelid,Messageid=@messageid WHERE Serverid=@serverid";
+                string insert = "UPDATE Notify SET Channelid=@channelid WHERE Serverid=@serverid";
                 var cmd = new SQLiteCommand(insert, sqlconn);
                 cmd.Parameters.AddWithValue("@channelid", channelid);
                 cmd.Parameters.AddWithValue("@serverid", serverid);
-            cmd.Parameters.AddWithValue("@messageid", messageid);
             sqlconn.Open();
                 cmd.ExecuteNonQuery();
             }
         }
     /// <summary>Update server event
     /// </summary>
-    public void UpdateSEvent(ulong serverid,int num)
+    public void UpdateSEvent(ulong serverid,ulong messageid,int num)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
 
-            string  insert = "UPDATE OnJoin SET sevent=@sevent WHERE Serverid=@serverid";
+            string  insert = "UPDATE OnJoin SET sevent=@sevent,Messageid=@messageid WHERE Serverid=@serverid";
 
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             cmd.Parameters.AddWithValue("@sevent", num);
+            cmd.Parameters.AddWithValue("@messageid", messageid);
             sqlconn.Open();
             cmd.ExecuteNonQuery();
         }
@@ -275,9 +274,9 @@ CREATE TABLE `Notify` (
             }
         }
     }
-    /// <summary>This is for Server List events
+    /// <summary>This is for Server List events, num0 get channelid, num1 get message id
     /// </summary>
-    public long GetSeventCH(ulong serverid)
+    public long GetSeventCH(ulong serverid,int num)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
@@ -289,7 +288,13 @@ CREATE TABLE `Notify` (
             {
                 while (reader.Read())
                 {
-                    return (long)reader["Channelid"];
+                    if (num == 0)
+                    {
+                        return (long)reader["Channelid"];
+                    } else { 
+                        return (long)reader["Messageid"]; 
+                    }
+                    
                 }
             }
         }
@@ -375,15 +380,16 @@ CREATE TABLE `Notify` (
             cmd.ExecuteNonQuery();
         }
     }
-    public void InsertRole(ulong serverid, ulong roleid,ulong channelid)
+    public void InsertRole(ulong serverid, ulong roleid,ulong channelid,ulong messageid)
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            string insert = "INSERT INTO OnJoin(Serverid,Roleid,Channelid) VALUES (@serverid,@roleid,@channelid)";
+            string insert = "INSERT INTO OnJoin(Serverid,Roleid,Channelid,Messageid) VALUES (@serverid,@roleid,@channelid,@messageid)";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             cmd.Parameters.AddWithValue("@roleid", roleid);
             cmd.Parameters.AddWithValue("@channelid", channelid);
+            cmd.Parameters.AddWithValue("@messageid", messageid);
             sqlconn.Open();
             cmd.ExecuteNonQuery();
         }
