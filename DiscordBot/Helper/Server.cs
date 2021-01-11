@@ -68,7 +68,7 @@ CREATE TABLE `Notify` (
     {
         using (var sqlconn = new SQLiteConnection(connectionstr))
         {
-            string insert = "INSERT INTO Notify(Serverid,Channelid) VALUES (@serverid,@channelid,@messageid)";
+            string insert = "INSERT INTO Notify(Serverid,Channelid) VALUES (@serverid,@channelid)";
             var cmd = new SQLiteCommand(insert, sqlconn);
             cmd.Parameters.AddWithValue("@serverid", serverid);
             cmd.Parameters.AddWithValue("@channelid", channelid);
