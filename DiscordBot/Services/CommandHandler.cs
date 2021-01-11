@@ -81,7 +81,6 @@ using Discord.WebSocket;
                     var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
                     await vChan.AddPermissionOverwriteAsync(roleee, AdminPermissions());
                     await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, None());
-                    server.InsertRole(guild.Id, roleee.Id,vChan.Id);
                     var ebd = new EmbedBuilder();
                     ebd.Color = Color.Green;
                     ebd.WithCurrentTimestamp();
@@ -90,6 +89,8 @@ using Discord.WebSocket;
                     ebd.WithFooter("Fork is a freemium Minecraft server management.");
                     var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
                     await vChan.SendMessageAsync($"<@{ownerr}>", false, ebd.Build());
+                    var msgg = await vChan.SendMessageAsync(null, false, Bot_Tools.Embed("Dont remove this message, this message will be updated continuously", 20));
+                    server.InsertRole(guild.Id, roleee.Id, vChan.Id, msgg.Id);
                 }
             } catch (Exception ex) { } });
         await Task.CompletedTask;
