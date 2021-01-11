@@ -116,11 +116,12 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
             var vChan = await Context.Guild.CreateTextChannelAsync("Fork-Bot");
             await vChan.AddPermissionOverwriteAsync(roleee, CommandHandler.AdminPermissions());
             await vChan.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, CommandHandler.None());
-            server.InsertRole(Context.Guild.Id, roleee.Id, vChan.Id);
             var ebd = new EmbedBuilder();
             ebd.Color = Color.Green;
             ebd.WithDescription("Done.");
-            await ReplyAsync($"<@{Context.Message.Author.Mention}>", false, ebd.Build());
+            await ReplyAsync($"{Context.Message.Author.Mention}", false, ebd.Build());
+            var msgg = await vChan.SendMessageAsync(null, false, Bot_Tools.Embed("Dont remove this message, this message will be updated continuously", 20));
+            server.InsertRole(Context.Guild.Id, roleee.Id, vChan.Id, msgg.Id);
         }
         catch (Exception ex) { Console.WriteLine(ex.ToString()); }
     }
@@ -199,10 +200,9 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
             if ((bool)server.CheckIfNotifyExist(Context.Guild.Id) == true)
             {
-                IMessageChannel chan = (IMessageChannel)Context.Guild.GetChannel(channel.Id);
-              var msgg =  await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this will be updated continuously", 20));
+
                 //await msgg.PinAsync();
-                server.UpdateNotify(Context.Guild.Id, channel.Id,msgg.Id);
+                server.UpdateNotify(Context.Guild.Id, channel.Id);
                 string warn = null;
                 if ( CheckConnection(ip) == true)
                 {
@@ -221,10 +221,8 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
             }
             else if ((bool)server.CheckIfNotifyExist(Context.Guild.Id) == false)
             {
-                IMessageChannel chan = (IMessageChannel)Context.Guild.GetChannel(channel.Id);
-                var msgg = await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this will be updated continuously", 20));
                 //await msgg.PinAsync();
-                server.InsertNotify(Context.Guild.Id, channel.Id,msgg.Id);
+                server.InsertNotify(Context.Guild.Id, channel.Id);
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
@@ -293,7 +291,10 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                 {
                     if (!server.CheckSevent(Context.Guild.Id,1) == true)
                     {
-                        server.UpdateSEvent(Context.Guild.Id, truefalse);
+
+                        IMessageChannel chan = (IMessageChannel)Context.Guild.GetChannel((ulong)server.GetSeventCH(Context.Guild.Id,0));
+                        var msgg = await chan.SendMessageAsync(null, false, Embed("Dont remove this message, this message will be updated continuously", 20));
+                        server.UpdateSEvent(Context.Guild.Id, msgg.Id,truefalse);
                         string warn = null;
                         if (CheckConnection(ip) == true)
                         {
@@ -301,7 +302,7 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                         }
                         else
                         {
-                            warn = Environment.NewLine + "Couldnt connect to your fork server but dont worry, ill tell your fork server to enable player events once its connected";
+                            warn = Environment.NewLine + "Couldnt connect to your fork server but dont worry, ill tell your fork server to enable server events once its connected";
                         }
 
                         await msg.ModifyAsync(msgProperty =>
@@ -323,7 +324,7 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                 {
                     if (server.CheckSevent(Context.Guild.Id, 1) == true)
                     {
-                        server.UpdateSEvent(Context.Guild.Id, truefalse);
+                        server.UpdateSEvent(Context.Guild.Id,0, truefalse);
                         if (CheckConnection(ip) == true)
                         {
                             await Sendmsg(Context.Guild.Id, $"unsub|serverListEvent");
