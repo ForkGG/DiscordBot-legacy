@@ -57,10 +57,10 @@ public class Bot_Tools : InteractiveBase
 
     }
 
-    public Server server = new Server();
+    public static Server server = new Server();
     /// <summary>By giving server id, it gets ip and token, and using timout is optional, its on 10 sec default
     /// </summary>
-    public async Task<int> Sendmsg(ulong serverid,string msg,long timeout = 10000)
+    public static async Task<int> Sendmsg(ulong serverid,string msg,long timeout = 10000)
     {
         string token = (string)server.GetTokenOfServer(serverid);
         string ip = (string)server.GetIPForToken(token, 2);
@@ -479,7 +479,7 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
             Console.WriteLine(ex.ToString());
         }
     }
-    private bool CheckConnection(string ip)
+    private static bool CheckConnection(string ip)
     {
        
         if (Discord_Bot.allSockets.Any(client => client.ConnectionInfo.ClientIpAddress == ip))
