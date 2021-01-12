@@ -248,7 +248,6 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
             if ((bool)server.CheckIfNotifyExist(Context.Guild.Id) == true)
             {
                 server.RemoveNotify(Context.Guild.Id);
-                 string warn = null;
                 if (CheckConnection(ip) == true)
                 {
                     await Sendmsg(Context.Guild.Id, $"unsub|playerEvent");
@@ -395,7 +394,11 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                 {
                     server.InsertAuth(Context.Guild.Id, token,ip);
                     server.RemoveOnhold(token);
-                    await Sendmsg(Context.Guild.Id, $"status|Linked|{Context.Guild.Name}");
+                    if (server.CheckSevent((ulong)server.GetServerForToken(token), 0) == true && (server.CheckSevent((ulong)server.GetServerForToken(token), 1) == true))
+                    {
+                        await Sendmsg(Context.Guild.Id, $"subscribe|serverListEvent");
+                    }
+                    
                     await msg.ModifyAsync(msgProperty =>
                     {
                         msgProperty.Content = $"{Context.Message.Author.Mention}";
@@ -507,8 +510,13 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
             if (((bool)server.CheckAuth("", Context.Guild.Id) == true))
             {
-                server.RemoveAuth(Context.Guild.Id);
-                server.RemoveRole(Context.Guild.Id);
+                string token = (string)server.GetTokenOfServer(Context.Guild.Id);
+                string ip = (string)server.GetIPForToken(token, 1);
+                server.LeaveServer(Context.Guild.Id);
+                if (CheckConnection(ip) == true )
+                {
+                    await Sendmsg(Context.Guild.Id, $"rec|token");
+                }
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
