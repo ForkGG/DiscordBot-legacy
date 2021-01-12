@@ -269,9 +269,9 @@ using Microsoft.Extensions.DependencyInjection;
                                         if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true)
                                         {
                                           
-                                            if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))).GetChannel((ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)))) != null)
+                                            if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) != null)
                                             {
-                                                if (eventname.StartsWith("p") && (bool)serverr.CheckIfNotifyExist((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true)
+                                                if (eventname.StartsWith("p") && (bool)serverr.CheckIfNotifyExist((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true && (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))).GetChannel((ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)))) != null))
                                                 {
                                                     switch (eventname)
                                                     {
@@ -283,11 +283,11 @@ using Microsoft.Extensions.DependencyInjection;
                                                             break;
                                                     }
                                                 }
-                                               else if (eventname.StartsWith("serverList") && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)),0) == true && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1) == true)
+                                               else if (eventname.StartsWith("serverList") && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)),0) == true && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1) == true && (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))).GetChannel((ulong)serverr.GetSeventCH((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 0))) != null)
                                                 {
                                                     var Do3 = Task.Run(async () =>
                                                     {
-
+                                                     
                                                         try
                                                         {
                                                             if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 0) == true && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1) == true)
@@ -336,7 +336,7 @@ using Microsoft.Extensions.DependencyInjection;
                                     }
                                     catch (Exception ex)
                                     {
-
+                                        Console.WriteLine(ex.ToString());
                                     }
                                 });
 
