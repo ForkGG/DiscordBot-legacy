@@ -39,6 +39,7 @@ using Discord.WebSocket;
         KKK.Client.MessageReceived += HandleCommandAsync;
         KKK.Client.MessagesBulkDeleted += BulkDeleteAsync;
         KKK.Client.JoinedGuild += Joinedguild;
+        KKK.Client.LeftGuild += Leftguild;
         KKK.Client.Disconnected += Issues;
     }
     public static OverwritePermissions AdminPermissions()
@@ -72,7 +73,7 @@ using Discord.WebSocket;
     {
         var Do = Task.Run(async() => { try {
 
-                if ((!(bool)server.CheckAuth("None", guild.Id) == true)  || (!(bool)server.CheckRoleAndChannel(guild.Id) == true))
+                if ((!(bool)server.CheckAuth("None", guild.Id) == true)  && (!(bool)server.CheckRoleAndChannel(guild.Id) == true))
                 {
                     ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
                     GuildPermissions perms = new GuildPermissions(origin);
@@ -93,6 +94,33 @@ using Discord.WebSocket;
                     server.InsertRole(guild.Id, roleee.Id, vChan.Id, msgg.Id);
                 }
             } catch (Exception ex) { } });
+        await Task.CompletedTask;
+    }
+    private async Task Leftguild(SocketGuild guild)
+    {
+        var Do = Task.Run(async () => {
+            try
+            {
+                if ((bool)server.CheckAuth("null", guild.Id) == true || (bool)server.CheckRoleAndChannel(guild.Id) == true){
+                    string token = (string)server.GetTokenOfServer(guild.Id);
+                    string ip = (string)server.GetIPForToken(token, 1);
+                  try
+                    {
+                        await Bot_Tools.Sendmsg(guild.Id, $"status|OnHold");
+                        await Bot_Tools.Sendmsg(guild.Id, $"unsub|serverListEvent");
+                        await Bot_Tools.Sendmsg(guild.Id, $"unsub|playerEvent");
+                    } catch (Exception ex)
+                    {
+
+                    }
+                       
+                
+                    //server.LeaveServer(guild.Id);
+                }
+              
+            }
+            catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+        });
         await Task.CompletedTask;
     }
 
