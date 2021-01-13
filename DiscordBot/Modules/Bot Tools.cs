@@ -396,6 +396,7 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                     server.RemoveOnhold(token);
                     if (server.CheckSevent((ulong)server.GetServerForToken(token), 0) == true && (server.CheckSevent((ulong)server.GetServerForToken(token), 1) == true))
                     {
+                        await Sendmsg(Context.Guild.Id,$"status|Linked|{Context.Guild.Name}");
                         await Sendmsg(Context.Guild.Id, $"subscribe|serverListEvent");
                     }
                     
@@ -436,7 +437,6 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
     {
         try
         {
-            
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed($"Please type `{Context.Guild.Name}` to confirm.{Environment.NewLine}Be aware this process cant be recovered.{Environment.NewLine}Type anything else to cancel."));
             var msgg = await NextMessageAsync(true, true, TimeSpan.FromMinutes(1));
                if (msgg.Content == Context.Guild.Name)
@@ -445,26 +445,28 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                 {
                     try
                     {
-                        var channel = Context.Guild.GetChannel((ulong)server.GetRoleandChannel(Context.Guild.Id, 1));
-                        await channel.DeleteAsync();
-                        var Role = Context.Guild.GetRole((ulong)server.GetRoleandChannel(Context.Guild.Id, 0));
-                      await  Role.DeleteAsync();
+                        if (Context.Guild.GetChannel((ulong)server.GetRoleandChannel(Context.Guild.Id, 1)) != null)
+                        {
+                            var channel = Context.Guild.GetChannel((ulong)server.GetRoleandChannel(Context.Guild.Id, 1));
+                            await channel.DeleteAsync();
+                        }
+                        if (Context.Guild.GetRole((ulong)server.GetRoleandChannel(Context.Guild.Id, 0)) != null)
+                        {
+                            var Role = Context.Guild.GetRole((ulong)server.GetRoleandChannel(Context.Guild.Id, 0));
+                            await Role.DeleteAsync();
+                        }
                     } catch (Exception ex)
                     {
 
                     }
                     
                 }
-                    server.LeaveServer(Context.Guild.Id);
-               await ReplyAsync(Context.Message.Author.Mention, false, Embed($"Sad to see you go.., good bye!",20));
-                try
-                {
                     await Sendmsg(Context.Guild.Id, $"status|OnHold");
-                    await Context.Guild.LeaveAsync();
-                } catch (Exception ex)
-                {
-                    await Context.Guild.LeaveAsync();
-                }
+                    server.LeaveServer(Context.Guild.Id);
+
+                
+               await ReplyAsync(Context.Message.Author.Mention, false, Embed($"Sad to see you go.., good bye!",20));
+              try { await Context.Guild.LeaveAsync(); } catch (Exception ex) { }
                
 
               
