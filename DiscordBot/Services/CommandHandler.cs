@@ -75,21 +75,30 @@ using Discord.WebSocket;
 
                 if ((!(bool)server.CheckAuth("None", guild.Id) == true)  && (!(bool)server.CheckRoleAndChannel(guild.Id) == true))
                 {
+                    if (guild.Roles.Any(x => x.Name == "Fork-Mods"))
+                    {
+                      await guild.Roles.FirstOrDefault(x => x.Name == "Fork-Mods").DeleteAsync();
+                    }
+                    if (guild.TextChannels.Any(x => x.Name == "Fork-Bot"))
+                    {
+                      await guild.TextChannels.FirstOrDefault(x => x.Name == "Fork-Bot").DeleteAsync();
+                    }
                     ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
                     GuildPermissions perms = new GuildPermissions(origin);
                     //Color Colorr = new Color(21, 22, 34);
-                    var roleee = await guild.CreateRoleAsync("Fork-Mods", perms, null, false, false, null);
-                    var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
+                        var roleee = await guild.CreateRoleAsync("Fork-Mods", perms, null, false, false, null);
+                      var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
                     await vChan.AddPermissionOverwriteAsync(roleee, AdminPermissions());
                     await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, None());
+                    
                     var ebd = new EmbedBuilder();
                     ebd.Color = Color.Green;
                     ebd.WithCurrentTimestamp();
                     ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
                     ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
                     ebd.WithFooter("Fork is a freemium Minecraft server management.");
-                    var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
-                    await vChan.SendMessageAsync($"<@{ownerr}>", false, ebd.Build());
+                    //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
+                    await vChan.SendMessageAsync($"<@{guild.OwnerId}>", false, ebd.Build());
                     var msgg = await vChan.SendMessageAsync(null, false, Bot_Tools.Embed("Dont remove this message, this message will be updated continuously", 20));
                     server.InsertRole(guild.Id, roleee.Id, vChan.Id, msgg.Id);
                 }
@@ -113,9 +122,9 @@ using Discord.WebSocket;
                     {
 
                     }
-                       
-                
-                    //server.LeaveServer(guild.Id);
+
+
+                    server.LeaveServer(guild.Id);
                 }
               
             }
@@ -195,7 +204,7 @@ using Discord.WebSocket;
                    var thisss = context.Message.Author as SocketGuildUser;
                     if (authorr.Roles.Any(r => r.Id == (ulong)Roleid) == true || thisss.GuildPermissions.ManageGuild == true)
                     {
-                        if (userMessage.Content.ToLower().StartsWith($"{KKK.prefix}auth") || (bool)server.CheckAuth("null", context.Guild.Id) == true) //if its for authentication let the command to be executed
+                        if (userMessage.Content.ToLower().StartsWith($"{KKK.prefix}auth") || userMessage.Content.ToLower().StartsWith($"{KKK.prefix}leave") || (bool)server.CheckAuth("null", context.Guild.Id) == true) //if its for authentication let the command to be executed
                         {
                             string command = userMessage.Content.Substring(argPos).Trim();
                             var result = await KKK.CommandService.ExecuteAsync(context, command, Services);
