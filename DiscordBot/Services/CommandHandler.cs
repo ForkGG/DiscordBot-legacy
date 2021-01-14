@@ -75,34 +75,70 @@ using Discord.WebSocket;
 
                 if ((!(bool)server.CheckAuth("None", guild.Id) == true)  && (!(bool)server.CheckRoleAndChannel(guild.Id) == true))
                 {
-                    if (guild.Roles.Any(x => x.Name == "Fork-Mods"))
+                    string warning = null;
+                    try
                     {
-                      await guild.Roles.FirstOrDefault(x => x.Name == "Fork-Mods").DeleteAsync();
+                        if (guild.Roles.Any(x => x.Name == "Fork-Mods"))
+                        {
+                            foreach (var Role in guild.Roles.Where(x => x.Name == "Fork-Mods"))
+                            {
+                              await  Role.DeleteAsync();
+                            }
+                            
+                        }
                     }
-                    if (guild.TextChannels.Any(x => x.Name == "Fork-Bot"))
+                    catch (Exception ex)
                     {
-                      await guild.TextChannels.FirstOrDefault(x => x.Name == "Fork-Bot").DeleteAsync();
+                        warning += $"`Fork-Mods` role detected, please move my role to top roles and authenticate using `$auth [your token]` then run `$rec` to clean it." + Environment.NewLine;
                     }
-                    ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
-                    GuildPermissions perms = new GuildPermissions(origin);
-                    //Color Colorr = new Color(21, 22, 34);
+                    try
+                    {
+                        if (guild.TextChannels.Any(x => x.Name == "Fork-Bot"))
+                        {
+                            foreach (var Chan in guild.Channels.Where(x => x.Name == "Fork-Bot"))
+                            {
+                                await Chan.DeleteAsync();
+                            }
+                        }
+                    } catch (Exception ex)
+                    {
+                        warning += $"`Fork-Bot` channel detected, please move my role to top roles and authenticate using `$auth [your token]` then run `$rec` to clean it." + Environment.NewLine;
+                    }
+                   if (warning == null)
+                    {
+                        ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
+                        GuildPermissions perms = new GuildPermissions(origin);
+                        //Color Colorr = new Color(21, 22, 34);
                         var roleee = await guild.CreateRoleAsync("Fork-Mods", perms, null, false, false, null);
-                      var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
-                    await vChan.AddPermissionOverwriteAsync(roleee, AdminPermissions());
-                    await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, None());
-                    
-                    var ebd = new EmbedBuilder();
-                    ebd.Color = Color.Green;
-                    ebd.WithCurrentTimestamp();
-                    ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
-                    ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
-                    ebd.WithFooter("Fork is a freemium Minecraft server management.");
-                    //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
-                    await vChan.SendMessageAsync($"<@{guild.OwnerId}>", false, ebd.Build());
-                    var msgg = await vChan.SendMessageAsync(null, false, Bot_Tools.Embed("Dont remove this message, this message will be updated continuously", 20));
-                    server.InsertRole(guild.Id, roleee.Id, vChan.Id, msgg.Id);
+                        var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
+                        await vChan.AddPermissionOverwriteAsync(roleee, AdminPermissions());
+                        await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, None());
+
+                        var ebd = new EmbedBuilder();
+                        ebd.Color = Color.Green;
+                        ebd.WithCurrentTimestamp();
+                        ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
+                        ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
+                        ebd.WithFooter("Fork is a freemium Minecraft server management.");
+                        //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
+                        await vChan.SendMessageAsync($"<@{guild.OwnerId}>", false, ebd.Build());
+                        var msgg = await vChan.SendMessageAsync(null, false, Bot_Tools.Embed("Dont remove this message, this message will be updated continuously", 20));
+                        server.InsertRole(guild.Id, roleee.Id, vChan.Id, msgg.Id);
+                    }
+                   else
+                    {
+                        var ebd = new EmbedBuilder();
+                        ebd.Color = Color.Red;
+                        ebd.WithCurrentTimestamp();
+                        ebd.WithAuthor($"Error", guild.CurrentUser.GetAvatarUrl());
+                        ebd.WithDescription(warning);
+                        ebd.WithFooter("Fork is a freemium Minecraft server management.");
+                        //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
+                        await guild.DefaultChannel.SendMessageAsync($"<@{guild.OwnerId}>", false, ebd.Build());
+                    }
+                   
                 }
-            } catch (Exception ex) { } });
+            } catch (Exception ex) { Console.WriteLine(ex.ToString()); } });
         await Task.CompletedTask;
     }
     private async Task Leftguild(SocketGuild guild)
@@ -116,6 +152,7 @@ using Discord.WebSocket;
                   try
                     {
                         await Bot_Tools.Sendmsg(guild.Id, $"status|OnHold");
+                        await Bot_Tools.Sendmsg(guild.Id, $"rec");
                         await Bot_Tools.Sendmsg(guild.Id, $"unsub|serverListEvent");
                         await Bot_Tools.Sendmsg(guild.Id, $"unsub|playerEvent");
                     } catch (Exception ex)
