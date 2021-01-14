@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
@@ -103,27 +104,78 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
     [Summary("Recreates role and channels. usage: (prefix)rec")]
     public async Task Rec()
     {
-        try
-        {
+        var Do = Task.Run(async () => {
+            try
+            {
 
-            if (Context.Guild.GetChannel((ulong)server.GetRoleandChannel(Context.Guild.Id, 1)) != null) { await Context.Guild.GetChannel((ulong)server.GetRoleandChannel(Context.Guild.Id, 1)).DeleteAsync(); }
-            if (Context.Guild.GetRole((ulong)server.GetRoleandChannel(Context.Guild.Id, 0)) != null) { await Context.Guild.GetRole((ulong)server.GetRoleandChannel(Context.Guild.Id, 0)).DeleteAsync(); }
-            server.RemoveRole(Context.Guild.Id);
-            ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
-            GuildPermissions perms = new GuildPermissions(origin);
-            //Color Colorr = new Color(21, 22, 34);
-            var roleee = await Context.Guild.CreateRoleAsync("Fork-Mods", perms, null, false, false, null);
-            var vChan = await Context.Guild.CreateTextChannelAsync("Fork-Bot");
-            await vChan.AddPermissionOverwriteAsync(roleee, CommandHandler.AdminPermissions());
-            await vChan.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, CommandHandler.None());
-            var ebd = new EmbedBuilder();
-            ebd.Color = Color.Green;
-            ebd.WithDescription("Done.");
-            await ReplyAsync($"{Context.Message.Author.Mention}", false, ebd.Build());
-            var msgg = await vChan.SendMessageAsync(null, false, Bot_Tools.Embed("Dont remove this message, this message will be updated continuously", 20));
-            server.InsertRole(Context.Guild.Id, roleee.Id, vChan.Id, msgg.Id);
-        }
-        catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+                server.RemoveRole(Context.Guild.Id);
+                    string warning = null;
+                    try
+                    {
+                        if (Context.Guild.Roles.Any(x => x.Name.ToLower() == "Fork-Mods".ToLower()))
+                        {
+                            foreach (var Role in Context.Guild.Roles.Where(x => x.Name.ToLower() == "Fork-Mods".ToLower()))
+                            {
+                                await Role.DeleteAsync();
+                            }
+
+                        }
+                    }
+                    catch (Exception ex)
+                    { 
+                    warning += $"`Fork-Mods` role detected, please move my role to top roles then run `$rec` to clean it." + Environment.NewLine;
+                    }
+                    try
+                    {
+                        if (Context.Guild.TextChannels.Any(x => x.Name.ToLower() == "Fork-Bot".ToLower()))
+                        {
+                            foreach (var Chan in Context.Guild.Channels.Where(x => x.Name.ToLower() == "Fork-Bot".ToLower()))
+                            {
+                                await Chan.DeleteAsync();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                    warning += $"`Fork-Bot` channel detected, please move my role to top roles then run `$rec` to clean it." + Environment.NewLine;
+                    }
+                    if (warning == null)
+                    {
+                        ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
+                        GuildPermissions perms = new GuildPermissions(origin);
+                        //Color Colorr = new Color(21, 22, 34);
+                        var roleee = await Context.Guild.CreateRoleAsync("Fork-Mods", perms, null, false, false, null);
+                        var vChan = await Context.Guild.CreateTextChannelAsync("Fork-Bot");
+                        await vChan.AddPermissionOverwriteAsync(roleee, CommandHandler.AdminPermissions());
+                        await vChan.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole, CommandHandler.None());
+
+                        var ebd = new EmbedBuilder();
+                        ebd.Color = Color.Green;
+                        ebd.WithCurrentTimestamp();
+                        ebd.WithAuthor($"Fork Server Management", Context.Guild.CurrentUser.GetAvatarUrl());
+                        ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
+                        ebd.WithFooter("Fork is a freemium Minecraft server management.");
+                        //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
+                        await vChan.SendMessageAsync($"<@{Context.Guild.OwnerId}>", false, ebd.Build());
+                        var msgg = await vChan.SendMessageAsync(null, false, Bot_Tools.Embed("Dont remove this message, this message will be updated continuously", 20));
+                        server.InsertRole(Context.Guild.Id, roleee.Id, vChan.Id, msgg.Id);
+                    }
+                    else
+                    {
+                        var ebd = new EmbedBuilder();
+                        ebd.Color = Color.Red;
+                        ebd.WithCurrentTimestamp();
+                        ebd.WithAuthor($"Error", Context.Guild.CurrentUser.GetAvatarUrl());
+                        ebd.WithDescription(warning);
+                        ebd.WithFooter("Fork is a freemium Minecraft server management.");
+                        //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
+                        await Context.Guild.DefaultChannel.SendMessageAsync($"<@{Context.Guild.OwnerId}>", false, ebd.Build());
+                    }
+
+            
+            }
+            catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+        });
     }
     [Command("stop", RunMode = RunMode.Async)]
     [Alias("stop")]
@@ -394,12 +446,11 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                 {
                     server.InsertAuth(Context.Guild.Id, token,ip);
                     server.RemoveOnhold(token);
+                    await Sendmsg(Context.Guild.Id, $"status|Linked|{Context.Guild.Name}");
                     if (server.CheckSevent((ulong)server.GetServerForToken(token), 0) == true && (server.CheckSevent((ulong)server.GetServerForToken(token), 1) == true))
                     {
-                        await Sendmsg(Context.Guild.Id,$"status|Linked|{Context.Guild.Name}");
                         await Sendmsg(Context.Guild.Id, $"subscribe|serverListEvent");
                     }
-                    
                     await msg.ModifyAsync(msgProperty =>
                     {
                         msgProperty.Content = $"{Context.Message.Author.Mention}";
@@ -430,6 +481,79 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
             Console.WriteLine(ex.ToString());
         }
     }
+    [Command("help", RunMode = RunMode.Async)]
+    [Summary("All command details, for specific command details use (prefix)help [commandname]")]
+    public async Task help(string commandname = "all")
+    {
+        try
+        {
+
+
+            EmbedBuilder eb = new EmbedBuilder { Color = Color.Blue };
+            EmbedBuilder owner = new EmbedBuilder { Color = Color.Blue };
+            List<CommandInfo> commands = KKK.CommandService.Commands.ToList();
+            bool kwqw = false;
+            bool onemod = false;
+            string list = null;
+            if (commandname == "all")
+            {
+                foreach (ModuleInfo modulename in KKK.CommandService.Modules)
+                {
+                    list = null;
+                    foreach (CommandInfo command in modulename.Commands)
+                    {
+
+                        kwqw = true;
+                        list += $"`{command.Name}` | ";
+                    }
+                    eb.AddField(modulename.Name, list);
+                }
+            }
+            else if (!(commandname == "all"))
+            {
+                foreach (CommandInfo command in commands)
+                {
+                    if (command.Name == commandname)
+                    {
+                        kwqw = true;
+                        onemod = true;
+                        eb.AddField(command.Name, command.Summary.Replace("(prefix)", KKK.prefix));
+                    }
+                }
+            }
+            if (kwqw == false)
+            {
+                eb.Color = Color.Red;
+                eb.Description = $"Sorry but we couldn't find ({commandname}) in commands list";
+            }
+            else if (kwqw == true)
+            {
+                eb.WithCurrentTimestamp();
+
+                if (!(onemod == true))
+                {
+                    eb.WithAuthor("Command List", Context.Client.CurrentUser.GetAvatarUrl());
+                    eb.Description = $"Use `{KKK.prefix}help [commandname]` to get more details about specific command";
+                }
+                else
+                {
+                    eb.WithAuthor($"Info about {commandname} command", Context.Client.CurrentUser.GetAvatarUrl());
+                }
+                eb.WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl());
+                eb.WithFooter("Requested By: " + Context.User.Username + "#" + Context.User.Discriminator);
+                await Context.Message.Author.SendMessageAsync(null, false, eb.Build());
+            }
+            owner.Description = $"I sent you a DM with your request";
+            owner.Color = Color.Green;
+            await ReplyAsync(Context.Message.Author.Mention, false, owner.Build());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+
+    }
+
     [Command("leave", RunMode = RunMode.Async)]
     [Alias("leave")]
     [Summary("Bot will leaves discord server. *be aware, it deletes all guild records in the db* usage: (prefix)leave")]
@@ -439,7 +563,8 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
         {
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed($"Please type `{Context.Guild.Name}` to confirm.{Environment.NewLine}Be aware this process cant be recovered.{Environment.NewLine}Type anything else to cancel."));
             var msgg = await NextMessageAsync(true, true, TimeSpan.FromMinutes(1));
-               if (msgg.Content == Context.Guild.Name)
+            await ReplyAsync(Context.Message.Author.Mention, false, Embed($"Sad to see you go.., ill leave shortly, good bye!", 20));
+            if (msgg.Content == Context.Guild.Name)
             {
                 if ((bool)server.CheckRoleAndChannel(Context.Guild.Id) == true)
                 {
@@ -461,11 +586,11 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                     }
                     
                 }
-                    await Sendmsg(Context.Guild.Id, $"status|OnHold");
-                    server.LeaveServer(Context.Guild.Id);
-
-                
-               await ReplyAsync(Context.Message.Author.Mention, false, Embed($"Sad to see you go.., good bye!",20));
+                await Sendmsg(Context.Guild.Id, $"rec");
+                await Sendmsg(Context.Guild.Id, $"status|OnHold");
+                await Sendmsg(Context.Guild.Id, $"unsub|serverListEvent");
+                await Sendmsg(Context.Guild.Id, $"unsub|playerEvent");
+                server.LeaveServer(Context.Guild.Id);
               try { await Context.Guild.LeaveAsync(); } catch (Exception ex) { }
                
 
@@ -517,7 +642,7 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                 server.LeaveServer(Context.Guild.Id);
                 if (CheckConnection(ip) == true )
                 {
-                    await Sendmsg(Context.Guild.Id, $"rec|token");
+                    await Sendmsg(Context.Guild.Id, $"rec");
                 }
                 await msg.ModifyAsync(msgProperty =>
                 {
