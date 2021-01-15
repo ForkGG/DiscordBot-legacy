@@ -447,6 +447,10 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                     server.InsertAuth(Context.Guild.Id, token,ip);
                     server.RemoveOnhold(token);
                     await Sendmsg(Context.Guild.Id, $"status|Linked|{Context.Guild.Name}");
+                    if ((bool)server.CheckRoleAndChannel(Context.Guild.Id) == false)
+                    {
+                       await Rec();
+                    }
                     if (server.CheckSevent((ulong)server.GetServerForToken(token), 0) == true && (server.CheckSevent((ulong)server.GetServerForToken(token), 1) == true))
                     {
                         await Sendmsg(Context.Guild.Id, $"subscribe|serverListEvent");
