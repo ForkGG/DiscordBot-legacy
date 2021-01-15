@@ -635,15 +635,16 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
         try
         {
             var msg = await ReplyAsync(Context.Message.Author.Mention, false, Embed("Alright give me few seconds please."));
-            if (((bool)server.CheckAuth("", Context.Guild.Id) == true))
+            string token = (string)server.GetTokenOfServer(Context.Guild.Id);
+            if (((bool)server.CheckAuth(token, Context.Guild.Id) == true))
             {
-                string token = (string)server.GetTokenOfServer(Context.Guild.Id);
+                
                 string ip = (string)server.GetIPForToken(token, 1);
-                server.LeaveServer(Context.Guild.Id);
                 await Sendmsg(Context.Guild.Id, $"rec");
                 await Sendmsg(Context.Guild.Id, $"status|OnHold");
                 await Sendmsg(Context.Guild.Id, $"unsub|serverListEvent");
                 await Sendmsg(Context.Guild.Id, $"unsub|playerEvent");
+                server.LeaveServer(Context.Guild.Id);
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
