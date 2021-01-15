@@ -640,10 +640,10 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                 string token = (string)server.GetTokenOfServer(Context.Guild.Id);
                 string ip = (string)server.GetIPForToken(token, 1);
                 server.LeaveServer(Context.Guild.Id);
-                if (CheckConnection(ip) == true )
-                {
-                    await Sendmsg(Context.Guild.Id, $"rec");
-                }
+                await Sendmsg(Context.Guild.Id, $"rec");
+                await Sendmsg(Context.Guild.Id, $"status|OnHold");
+                await Sendmsg(Context.Guild.Id, $"unsub|serverListEvent");
+                await Sendmsg(Context.Guild.Id, $"unsub|playerEvent");
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
