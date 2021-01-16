@@ -451,10 +451,9 @@ Console.WriteLine($"{msg} send to {socket.ConnectionInfo.ClientIpAddress}");
                     {
                        await Rec();
                     }
-                    if (server.CheckSevent((ulong)server.GetServerForToken(token), 0) == true && (server.CheckSevent((ulong)server.GetServerForToken(token), 1) == true))
-                    {
+                  
                         await Sendmsg(Context.Guild.Id, $"subscribe|serverListEvent");
-                    }
+                   
                     await msg.ModifyAsync(msgProperty =>
                     {
                         msgProperty.Content = $"{Context.Message.Author.Mention}";
