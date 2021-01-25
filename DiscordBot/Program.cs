@@ -1,21 +1,15 @@
-﻿using Fleck;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Net;
 
 
-    static class Program
+static class Program
     {
         public static void Main()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(@"
-Fork Bot is starting
----------------------------------------------------------------");
+            Console.WriteLine("Fork Bot is starting\n---------------------------------------------------------------");
 
-            Discord_Bot.StartAsync().GetAwaiter().GetResult();
-       
-    }
+            DiscordBot.StartAsync().GetAwaiter().GetResult();
+        }
     }

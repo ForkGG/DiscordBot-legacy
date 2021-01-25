@@ -14,23 +14,27 @@ using Fleck;
 using log4net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Websocket.Client.Logging;
+using LogLevel = Fleck.LogLevel;
 
 
-    public class Discord_Bot
-    {
+public class DiscordBot
+{
     public Server serverr = new Server();
-  public static List<IWebSocketConnection> allSockets { get; set; } = new List<IWebSocketConnection>();
+    public static List<IWebSocketConnection> allSockets { get; set; } = new List<IWebSocketConnection>();
+
     /// <summary>Connected Tokens
     /// </summary>
     public static List<string> AliveTokens { get; set; } = new List<string>();
+
     //public System.Timers.Timer Updateserverlist;
     //bool UpdateServer = false;
     public static async Task StartAsync()
-        {
-        await new Discord_Bot().RunAsync();   
-        }
-   
-   private async Task GetReadyWS()
+    {
+        await new DiscordBot().RunAsync();
+    }
+
+    private async Task GetReadyWS()
     {
         //if (!(UpdateServer == true))
         //{
@@ -60,7 +64,6 @@ using Microsoft.Extensions.DependencyInjection;
         //                    }
         //                }
         //            }
-
 
 
         //        }
@@ -99,106 +102,134 @@ using Microsoft.Extensions.DependencyInjection;
         {
             Console.WriteLine("Waiting for client to be ready..."); //Dont start events until discord api is ready
         }
+
         do
         {
             // nothing, just pauses the tasks
-        }
-        while (KKK.IsClientReady != true);
+        } while (KKK.IsClientReady != true);
+
         Console.WriteLine("Its ready, lets start, shall we?");
         var server = new WebSocketServer("ws://0.0.0.0:8181");
         server.Start(socket =>
         {
-
             socket.OnOpen = () =>
             {
-                if (allSockets.Any(client => client.ConnectionInfo.ClientIpAddress == socket.ConnectionInfo.ClientIpAddress))
+                if (allSockets.Any(client =>
+                    client.ConnectionInfo.ClientIpAddress == socket.ConnectionInfo.ClientIpAddress))
                 {
-                    var socket2 = allSockets.Find(client => client.ConnectionInfo.ClientIpAddress == socket.ConnectionInfo.ClientIpAddress);
-                    try { allSockets.Remove(socket2); } catch (Exception ex) { } //Little security, dont let same ip to connect twice
-                    allSockets.Add(socket);
+                    var socket2 = allSockets.Find(client =>
+                        client.ConnectionInfo.ClientIpAddress == socket.ConnectionInfo.ClientIpAddress);
+                    try
+                    {
+                        allSockets.Remove(socket2);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Exception occured: "+ex.Message);
+                    } //Little security, dont let same ip to connect twice
 
+                    allSockets.Add(socket);
                 }
                 else
                 {
-                    try { allSockets.Remove(socket); } catch (Exception ex) { }
+                    try
+                    {
+                        allSockets.Remove(socket);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Exception occured: "+ex.Message);
+                    }
+
                     allSockets.Add(socket);
                 }
             };
             socket.OnClose = () =>
             {
-
                 Console.WriteLine("Close!");
                 allSockets.Remove(socket);
-                if ((bool)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 0) == true)
+                if (serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress))
                 {
-                    if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)))
+                    string token = serverr.GetTokenForkIp(socket.ConnectionInfo.ClientIpAddress);
+                    if (AliveTokens.Contains(token))
                     {
-                        AliveTokens.Remove((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
+                        AliveTokens.Remove(token);
                         Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress} Removed from alive tokens list");
                     }
-
                 }
             };
             socket.OnMessage = message =>
             {
-                var Do = Task.Run(async () =>
+                Task.Run(async () =>
                 {
                     try
                     {
 #if DEBUG
-                        Console.WriteLine($"Message Recieved: {message}");
+                        Console.WriteLine($"Message Received: {message}");
 #endif
-                        string[] codes = (message).Split('|');
+                        string[] codes = message.Split('|');
                         switch (codes[0])
                         {
                             case "login":
                                 string token = codes[1];
 
-                                if ((!(bool)serverr.CheckAuth(token) == true) && !(bool)serverr.CheckOnhold(token, socket.ConnectionInfo.ClientIpAddress) == true)
+                                if (!serverr.CheckAuth(token) 
+                                    && !serverr.CheckOnhold(token, socket.ConnectionInfo.ClientIpAddress))
                                 {
                                     serverr.InsertOnhold(token, socket.ConnectionInfo.ClientIpAddress);
-                                    Console.WriteLine("Token: " + token + $" IP: {socket.ConnectionInfo.ClientIpAddress} Added to onhold list");
+                                    Console.WriteLine("Token: " + token +
+                                                      $" IP: {socket.ConnectionInfo.ClientIpAddress} Added to onhold list");
                                     await socket.Send("status|OnHold");
                                 }
-                                else if ((bool)serverr.CheckAuth(token) == true && (bool)serverr.CheckAuth2(token, socket.ConnectionInfo.ClientIpAddress) == true)
+                                else if (serverr.CheckAuth(token) 
+                                         && serverr.CheckAuth2(token, socket.ConnectionInfo.ClientIpAddress))
                                 {
-                                    if (!AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)))
+                                    if (!AliveTokens.Contains(
+                                        serverr.GetTokenForkIp(socket.ConnectionInfo.ClientIpAddress)))
                                     {
                                         try
                                         {
                                             AliveTokens.Add(token);
-                                            Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress}:{token} Added to alive tokens list");
+                                            Console.WriteLine(
+                                                $"{socket.ConnectionInfo.ClientIpAddress}:{token} Added to alive tokens list");
 #if DEBUG
-                                            Console.WriteLine("Here is token: " + (ulong)serverr.GetServerForToken(token));
+                                            Console.WriteLine("Here is token: " +
+                                                              (ulong) serverr.GetServerForToken(token));
 #endif
-                                            if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token)) != null)
+                                            if (KKK.Client.GetGuild((ulong) serverr.GetServerForToken(token)) != null)
                                             {
-                                                var guild = KKK.Client.GetGuild((ulong)serverr.GetServerForToken(token));
+                                                var guild = KKK.Client.GetGuild(
+                                                    (ulong) serverr.GetServerForToken(token));
                                                 await socket.Send($"status|Linked|{guild.Name}");
-
                                             }
-                                            else { await socket.Send($"status|Linked|null"); }
-                                            if ((bool)serverr.CheckIfNotifyExist((ulong)serverr.GetServerForToken(token)) == true)
+                                            else
+                                            {
+                                                await socket.Send($"status|Linked|null");
+                                            }
+
+                                            if (serverr.CheckIfNotifyExist((ulong) serverr.GetServerForToken(token)))
                                             {
                                                 await socket.Send($"subscribe|playerEvent");
                                             }
-                                            if (serverr.CheckSevent((ulong)serverr.GetServerForToken(token),0) == true && (serverr.CheckSevent((ulong)serverr.GetServerForToken(token),1) == true)){
+
+                                            if (serverr.CheckSevent((ulong) serverr.GetServerForToken(token), 0) &&
+                                                serverr.CheckSevent((ulong) serverr.GetServerForToken(token), 1))
+                                            {
                                                 await socket.Send($"subscribe|serverListEvent");
                                             }
                                         }
-                                        catch (Exception x)
+                                        catch (Exception ex)
                                         {
-                                            Console.WriteLine(x.ToString());
+                                            Console.WriteLine("Exception occured: "+ex.Message);
                                         }
-
                                     }
-
                                 }
+
                                 break;
                             case "notify":
-                                if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true)
+                                if (AliveTokens.Contains(serverr.GetTokenForkIp(socket.ConnectionInfo.ClientIpAddress)))
                                 {
-                                    var Do = Task.Run(async () =>
+                                    await Task.Run(async () =>
                                     {
                                         try
                                         {
@@ -217,17 +248,27 @@ using Microsoft.Extensions.DependencyInjection;
                                                     {
                                                         //notify|{servername}|{discordname}|{channelid}|{messageid}|{eventt}|400|this is a test
                                                         case "20": //ok
-                                                            await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` stopped successfully, command was executed by `{discordname}`", int.Parse(result));
+                                                            await BotTools.NotificationControlAsync(
+                                                                ulong.Parse(messageid), ulong.Parse(channelid),
+                                                                $"Your `{servername}` stopped successfully, command was executed by `{discordname}`",
+                                                                int.Parse(result));
                                                             break;
 
                                                         case "40": //its stopped already 
-                                                            await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` is stopped already, command was executed by `{discordname}`", int.Parse(result));
+                                                            await BotTools.NotificationControlAsync(
+                                                                ulong.Parse(messageid), ulong.Parse(channelid),
+                                                                $"Your `{servername}` is stopped already, command was executed by `{discordname}`",
+                                                                int.Parse(result));
                                                             break;
 
                                                         case "44": //server not found
-                                                            await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"I couldnt find your `{servername}` server, please make sure you typed the right name, command was executed by `{discordname}`", int.Parse(result));
+                                                            await BotTools.NotificationControlAsync(
+                                                                ulong.Parse(messageid), ulong.Parse(channelid),
+                                                                $"I couldnt find your `{servername}` server, please make sure you typed the right name, command was executed by `{discordname}`",
+                                                                int.Parse(result));
                                                             break;
                                                     }
+
                                                     break;
 
                                                 case "start":
@@ -236,98 +277,146 @@ using Microsoft.Extensions.DependencyInjection;
                                                     {
                                                         //notify|{servername}|{discordname}|{channelid}|{messageid}|{eventt}|400|this is a test
                                                         case "20": //ok
-                                                            await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` server is starting.. , command was executed by `{discordname}`", int.Parse(result));
+                                                            await BotTools.NotificationControlAsync(
+                                                                ulong.Parse(messageid), ulong.Parse(channelid),
+                                                                $"Your `{servername}` server is starting.. , command was executed by `{discordname}`",
+                                                                int.Parse(result));
                                                             break;
                                                         case "21": //ok
-                                                            await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` started successfully, command was executed by `{discordname}`", int.Parse(result));
+                                                            await BotTools.NotificationControlAsync(
+                                                                ulong.Parse(messageid), ulong.Parse(channelid),
+                                                                $"Your `{servername}` started successfully, command was executed by `{discordname}`",
+                                                                int.Parse(result));
                                                             break;
                                                         case "40": //its stopped already 
-                                                            await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"Your `{servername}` is running already, command was executed by `{discordname}`", int.Parse(result));
+                                                            await BotTools.NotificationControlAsync(
+                                                                ulong.Parse(messageid), ulong.Parse(channelid),
+                                                                $"Your `{servername}` is running already, command was executed by `{discordname}`",
+                                                                int.Parse(result));
                                                             break;
 
                                                         case "44": //server not found
-                                                            await Bot_Tools.NotificationControlAsync(ulong.Parse(messageid), ulong.Parse(channelid), $"I couldnt find your `{servername}` server, please make sure you typed the right name, command was executed by `{discordname}`", int.Parse(result));
+                                                            await BotTools.NotificationControlAsync(
+                                                                ulong.Parse(messageid), ulong.Parse(channelid),
+                                                                $"I couldnt find your `{servername}` server, please make sure you typed the right name, command was executed by `{discordname}`",
+                                                                int.Parse(result));
                                                             break;
                                                     }
+
                                                     break;
                                             }
                                         }
-                                        catch (Exception ex) { Console.WriteLine("Couldnt process request: invalid"); }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine("Couldn't process request: "+ex.Message);
+                                        }
                                     });
-
-
                                 }
+
                                 break;
                             case "event":
-                                var Do2 = Task.Run(async () =>
+                                await Task.Run(async () =>
                                 {
                                     string eventname = codes[1];
                                     string servername = codes[2];
                                     string playername = codes[3];
                                     try
                                     {
-                                        if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true)
+                                        string token = serverr.GetTokenForkIp(socket.ConnectionInfo.ClientIpAddress);
+                                        if (AliveTokens.Contains(token))
                                         {
-                                          
-                                            if (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) != null)
+                                            if (KKK.Client.GetGuild((ulong) serverr.GetServerForToken(token)) != null)
                                             {
-                                                if (eventname.StartsWith("p") && (bool)serverr.CheckIfNotifyExist((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))) == true && (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))).GetChannel((ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)))) != null))
+                                                if (eventname.StartsWith("p")
+                                                    && serverr.CheckIfNotifyExist(
+                                                        (ulong) serverr.GetServerForToken(token))
+                                                    && KKK.Client.GetGuild((ulong) serverr.GetServerForToken(token))
+                                                        .GetChannel(
+                                                            (ulong) serverr.GetSubbedChannel(
+                                                                (ulong) serverr.GetServerForToken(token))) != null)
                                                 {
                                                     switch (eventname)
                                                     {
                                                         case "pjoin":
-                                                            await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))), $"***{playername}*** Just joined ***{servername}***", 0, 1);
+                                                            await BotTools.NotificationControlAsync(0,
+                                                                (ulong) serverr.GetSubbedChannel(
+                                                                    (ulong) serverr.GetServerForToken(token)),
+                                                                $"***{playername}*** Just joined ***{servername}***", 0,
+                                                                1);
                                                             break;
                                                         case "pleave":
-                                                            await Bot_Tools.NotificationControlAsync(0, (ulong)serverr.GetSubbedChannel((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))), $"***{playername}*** Just left ***{servername}***", 0, 1);
+                                                            await BotTools.NotificationControlAsync(0,
+                                                                (ulong) serverr.GetSubbedChannel(
+                                                                    (ulong) serverr.GetServerForToken(token)),
+                                                                $"***{playername}*** Just left ***{servername}***", 0,
+                                                                1);
                                                             break;
                                                     }
                                                 }
-                                               else if (eventname.StartsWith("serverList") && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)),0) == true && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1) == true && (KKK.Client.GetGuild((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1))).GetChannel((ulong)serverr.GetSeventCH((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 0))) != null)
+                                                else if (eventname.StartsWith("serverList")
+                                                         && serverr.CheckSevent(
+                                                             (ulong) serverr.GetServerForToken(token), 0)
+                                                         && serverr.CheckSevent(
+                                                             (ulong) serverr.GetServerForToken(token), 1)
+                                                         && KKK.Client
+                                                             .GetGuild((ulong) serverr.GetServerForToken(token))
+                                                             .GetChannel(
+                                                                 (ulong) serverr.GetSeventCH(
+                                                                     (ulong) serverr.GetServerForToken(token), 0)) !=
+                                                         null)
                                                 {
-                                                    var Do3 = Task.Run(async () =>
+                                                    await Task.Run(async () =>
                                                     {
-                                                     
                                                         try
                                                         {
-                                                            if (AliveTokens.Contains((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)) == true && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 0) == true && (bool)serverr.CheckSevent((ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1)), 1) == true)
+                                                            if (AliveTokens.Contains(token) &&
+                                                                serverr.CheckSevent(
+                                                                    (ulong) serverr.GetServerForToken(token), 0) &&
+                                                                serverr.CheckSevent(
+                                                                    (ulong) serverr.GetServerForToken(token), 1))
                                                             {
-                                                                ulong guild = (ulong)serverr.GetServerForToken((string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1));
-                                                                string token = (string)serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress, 1);
-                                                                if (KKK.Client.GetGuild(guild).GetChannel((ulong)serverr.GetSeventCH(guild,0)) != null)
+                                                                ulong guild = (ulong) serverr.GetServerForToken(token);
+                                                                if (KKK.Client.GetGuild(guild)
+                                                                    .GetChannel(
+                                                                        (ulong) serverr.GetSeventCH(guild, 0)) != null)
                                                                 {
-                                                                    if ((ulong)serverr.GetSeventCH(guild, 1) != 0)
+                                                                    if ((ulong) serverr.GetSeventCH(guild, 1) != 0)
                                                                     {
-                                                                        IMessageChannel chan = (IMessageChannel)KKK.Client.GetChannel((ulong)serverr.GetSeventCH(guild, 0));
-                                                                        IUserMessage msg = (IUserMessage)await chan.GetMessageAsync((ulong)serverr.GetSeventCH(guild, 1));
+                                                                        IMessageChannel chan =
+                                                                            (IMessageChannel) KKK.Client.GetChannel(
+                                                                                (ulong) serverr.GetSeventCH(guild, 0));
+                                                                        IUserMessage msg =
+                                                                            (IUserMessage) await chan.GetMessageAsync(
+                                                                                (ulong) serverr.GetSeventCH(guild, 1));
                                                                         if (msg != null)
                                                                         {
                                                                             await msg.ModifyAsync(msgProperty =>
                                                                             {
-                                                                                msgProperty.Embed = BuildServerListEmbed(message);
+                                                                                msgProperty.Embed =
+                                                                                    BuildServerListEmbed(message);
                                                                             });
                                                                         }
                                                                         else
                                                                         {
-                                                                            var msgg = await chan.SendMessageAsync(null, false, Bot_Tools.Embed("Dont remove this message, this message will be updated continuously", 20));
+                                                                            var msgg = await chan.SendMessageAsync(null,
+                                                                                false,
+                                                                                BotTools.Embed(
+                                                                                    "Dont remove this message, this message will be updated continuously",
+                                                                                    20));
                                                                             serverr.UpdateSEvent(guild, msgg.Id, 1);
                                                                             await msgg.ModifyAsync(msgProperty =>
                                                                             {
-                                                                                msgProperty.Embed = BuildServerListEmbed(message);
+                                                                                msgProperty.Embed =
+                                                                                    BuildServerListEmbed(message);
                                                                             });
                                                                         }
                                                                     }
-                                                                  
-                                                                 
-                                                                  
                                                                 }
                                                             }
                                                         }
                                                         catch (Exception ex)
                                                         {
-#if DEBUG
-                                                            Console.WriteLine(ex.ToString());
-#endif
+                                                            Console.WriteLine("Exception occured: "+ex.Message);
                                                         }
                                                     });
                                                 }
@@ -336,29 +425,28 @@ using Microsoft.Extensions.DependencyInjection;
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine(ex.ToString());
+                                        Console.WriteLine("Exception occured: "+ex.Message);
                                     }
                                 });
 
                                 break;
-                          
+
                             default:
                                 // ban ip in case gets to x requests To-DO
                                 Console.WriteLine($"Someone is trying to troll here, invalid packet: {message}");
                                 break;
-
-
                         }
-
                     }
-                    catch (Exception ex) { Console.WriteLine(ex.ToString()); }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
                 });
 
 
                 //Console.WriteLine(message);
 
                 //allSockets.ToList().ForEach(s => s.Send(message));
-            
             };
         });
         var input = Console.ReadLine();
@@ -371,7 +459,8 @@ using Microsoft.Extensions.DependencyInjection;
             //input = Console.ReadLine();
         }
     }
-    private static Discord.Embed BuildServerListEmbed(string msg)
+
+    private static Embed BuildServerListEmbed(string msg)
     {
         string[] split = msg.Split('|');
 
@@ -409,47 +498,56 @@ using Microsoft.Extensions.DependencyInjection;
             //Code for serverType -> emoji
 
             //Build server string
-            string server = $"{statusEmoji} {serverName} ({serverType} {serverVersion}) {playerCount}/{maxPlayers}" + Environment.NewLine;
+            string server = $"{statusEmoji} {serverName} ({serverType} {serverVersion}) {playerCount}/{maxPlayers}" +
+                            Environment.NewLine;
             serverrr += server;
             i = i + 6;
         }
+
         var ebd = new EmbedBuilder();
         Color Colorr = new Color(21, 22, 34);
         ebd.WithDescription($"{serverrr}");
         ebd.WithCurrentTimestamp();
         return ebd.Build();
-
-
-
     }
+
     private async Task RunAsync()
-        {
+    {
         var config = BuildConfig();
-        using (var services = ConfigureServices())
-        {
-            var client = services.GetRequiredService<DiscordSocketClient>();
-            services.GetRequiredService<LogService>();
-            await client.LoginAsync(TokenType.Bot, config["token"]);
-            await client.StartAsync();
-            await services.GetRequiredService<CommandHandler>().InitializeAsync();
-           await Task.Run(async () => await GetReadyWS());
-            
-            await Task.Delay(Timeout.Infinite);
-        }
-        }
-        private IConfiguration BuildConfig()
-        {
-            return new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("config.json").Build();
-        }
+        await using var services = ConfigureServices();
+        var client = services.GetRequiredService<DiscordSocketClient>();
+        services.GetRequiredService<LogService>();
+        await client.LoginAsync(TokenType.Bot, config["token"]);
+        await client.StartAsync();
+        await services.GetRequiredService<CommandHandler>().InitializeAsync();
+        await Task.Run(async () => await GetReadyWS());
 
-        private ServiceProvider ConfigureServices()
-        {
-            var collection = new ServiceCollection();
-            collection.AddSingleton(new DiscordSocketClient(new DiscordSocketConfig() { MessageCacheSize = 50, AlwaysDownloadUsers = true, ExclusiveBulkDelete = true, LogLevel = LogSeverity.Verbose, GatewayIntents = GatewayIntents.DirectMessageReactions | GatewayIntents.DirectMessages | GatewayIntents.GuildBans | GatewayIntents.GuildInvites | GatewayIntents.GuildMembers | GatewayIntents.GuildMessageReactions | GatewayIntents.GuildMessages | GatewayIntents.Guilds | GatewayIntents.GuildIntegrations })); // , .TotalShards = 3}))
-            collection.AddSingleton(new CommandService(new CommandServiceConfig() { LogLevel = LogSeverity.Verbose, DefaultRunMode = RunMode.Async }));
-            collection.AddSingleton<CommandHandler>();
-            collection.AddSingleton<LogService>();
-            collection.AddSingleton<InteractiveService>();
-            return collection.BuildServiceProvider();
-        }
+        await Task.Delay(Timeout.Infinite);
     }
+
+    private IConfiguration BuildConfig()
+    {
+        return new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("config.json")
+            .Build();
+    }
+
+    private ServiceProvider ConfigureServices()
+    {
+        var collection = new ServiceCollection();
+        collection.AddSingleton(new DiscordSocketClient(new DiscordSocketConfig()
+        {
+            MessageCacheSize = 50, AlwaysDownloadUsers = true, ExclusiveBulkDelete = true,
+            LogLevel = LogSeverity.Verbose,
+            GatewayIntents = GatewayIntents.DirectMessageReactions | GatewayIntents.DirectMessages |
+                             GatewayIntents.GuildBans | GatewayIntents.GuildInvites | GatewayIntents.GuildMembers |
+                             GatewayIntents.GuildMessageReactions | GatewayIntents.GuildMessages |
+                             GatewayIntents.Guilds | GatewayIntents.GuildIntegrations
+        })); // , .TotalShards = 3}))
+        collection.AddSingleton(new CommandService(new CommandServiceConfig()
+            {LogLevel = LogSeverity.Verbose, DefaultRunMode = RunMode.Async}));
+        collection.AddSingleton<CommandHandler>();
+        collection.AddSingleton<LogService>();
+        collection.AddSingleton<InteractiveService>();
+        return collection.BuildServiceProvider();
+    }
+}

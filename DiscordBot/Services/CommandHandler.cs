@@ -10,70 +10,63 @@ using Discord.Commands;
 using Discord.WebSocket;
 
 
-    static class KKK
-    {
-        public static string prefix = "$";
-        public static CommandService CommandService;
+static class KKK
+{
+    public static string prefix = "$";
+    public static CommandService CommandService;
     public static DiscordSocketClient Client;
     public static bool IsClientReady = false;
 }
 
-    public class CommandHandler
+public class CommandHandler
+{
+    private Server server = new Server();
+    private readonly IServiceProvider Services;
+
+    public CommandHandler(DiscordSocketClient client, CommandService commandService, IServiceProvider services)
     {
-    public Server server = new Server();
-   
-        private readonly IServiceProvider Services;
+        KKK.Client = client;
+        KKK.CommandService = commandService;
+        Services = services;
+    }
 
-        public CommandHandler(DiscordSocketClient client, CommandService commandService, IServiceProvider services)
-        {
-            KKK.Client = client;
-            KKK.CommandService = commandService;
-            Services = services;
-        }
-
-        public async Task InitializeAsync()
-        {
-            await KKK.CommandService.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
-        KKK.Client.Ready += ready;
+    public async Task InitializeAsync()
+    {
+        await KKK.CommandService.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
+        KKK.Client.Ready += OnClientReady;
         KKK.Client.UserJoined += welcome;
         KKK.Client.MessageReceived += HandleCommandAsync;
         KKK.Client.MessagesBulkDeleted += BulkDeleteAsync;
-        KKK.Client.JoinedGuild += Joinedguild;
-        KKK.Client.LeftGuild += Leftguild;
-        KKK.Client.Disconnected += Issues;
+        KKK.Client.JoinedGuild += OnGuildJoin;
+        KKK.Client.LeftGuild += OnGuildLeave;
+        KKK.Client.Disconnected += OnClientDisconnect;
     }
+
     public static OverwritePermissions AdminPermissions()
     {
-        return new OverwritePermissions(PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Allow, PermValue.Deny, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny);
+        return new(PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Allow,
+            PermValue.Allow, PermValue.Deny, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Allow,
+            PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny,
+            PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny);
     }
-    public static OverwritePermissions None()
-    {
-        return new OverwritePermissions(PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny,
-                                        PermValue.Deny);
-    }
-    private async Task Joinedguild(SocketGuild guild)
-    {
-        var Do = Task.Run(async() => { try {
 
-                if ((!(bool)server.CheckAuth("None", guild.Id) == true)  && (!(bool)server.CheckRoleAndChannel(guild.Id) == true))
+    public static OverwritePermissions NoPermissions()
+    {
+        return new(PermValue.Deny, PermValue.Deny, PermValue.Deny,
+            PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny,
+            PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny,
+            PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny,
+            PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Deny,
+            PermValue.Deny);
+    }
+
+    private async Task OnGuildJoin(SocketGuild guild)
+    { 
+        await Task.Run(async () =>
+        {
+            try
+            {
+                if (!server.CheckAuth("None", guild.Id) && !server.CheckRoleAndChannel(guild.Id))
                 {
                     string warning = null;
                     try
@@ -82,15 +75,17 @@ using Discord.WebSocket;
                         {
                             foreach (var Role in guild.Roles.Where(x => x.Name == "Fork-Mods"))
                             {
-                              await  Role.DeleteAsync();
+                                await Role.DeleteAsync();
                             }
-                            
                         }
                     }
                     catch (Exception ex)
                     {
-                        warning += $"`Fork-Mods` role detected, please move my role to top roles and authenticate using `$auth [your token]` then run `$rec` to clean it." + Environment.NewLine;
+                        warning +=
+                            $"`Fork-Mods` role detected, please move my role to top roles and authenticate using `$auth [your token]` then run `$rec` to clean it." +
+                            Environment.NewLine;
                     }
+
                     try
                     {
                         if (guild.TextChannels.Any(x => x.Name == "Fork-Bot"))
@@ -100,32 +95,44 @@ using Discord.WebSocket;
                                 await Chan.DeleteAsync();
                             }
                         }
-                    } catch (Exception ex)
-                    {
-                        warning += $"`Fork-Bot` channel detected, please move my role to top roles and authenticate using `$auth [your token]` then run `$rec` to clean it." + Environment.NewLine;
                     }
-                   if (warning == null)
+                    catch (Exception ex)
                     {
-                        ulong origin = (ulong)GuildPermission.Speak + (ulong)GuildPermission.SendTTSMessages + (ulong)GuildPermission.SendMessages + (ulong)GuildPermission.ViewChannel + (ulong)GuildPermission.EmbedLinks + (ulong)GuildPermission.Connect + (ulong)GuildPermission.AttachFiles + (ulong)GuildPermission.AddReactions;
+                        warning +=
+                            $"`Fork-Bot` channel detected, please move my role to top roles and authenticate using `$auth [your token]` then run `$rec` to clean it." +
+                            Environment.NewLine;
+                    }
+
+                    if (warning == null)
+                    {
+                        ulong origin = (ulong) GuildPermission.Speak + (ulong) GuildPermission.SendTTSMessages +
+                                       (ulong) GuildPermission.SendMessages + (ulong) GuildPermission.ViewChannel +
+                                       (ulong) GuildPermission.EmbedLinks + (ulong) GuildPermission.Connect +
+                                       (ulong) GuildPermission.AttachFiles + (ulong) GuildPermission.AddReactions;
                         GuildPermissions perms = new GuildPermissions(origin);
                         //Color Colorr = new Color(21, 22, 34);
                         var roleee = await guild.CreateRoleAsync("Fork-Mods", perms, null, false, false, null);
                         var vChan = await guild.CreateTextChannelAsync("Fork-Bot");
                         await vChan.AddPermissionOverwriteAsync(roleee, AdminPermissions());
-                        await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, None());
+                        await vChan.AddPermissionOverwriteAsync(guild.EveryoneRole, NoPermissions());
 
                         var ebd = new EmbedBuilder();
                         ebd.Color = Color.Green;
                         ebd.WithCurrentTimestamp();
                         ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
-                        ebd.WithDescription("Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." + Environment.NewLine + "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" + Environment.NewLine + "You can check for your token in fork app settings.");
+                        ebd.WithDescription(
+                            "Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." +
+                            Environment.NewLine +
+                            "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" +
+                            Environment.NewLine + "You can check for your token in fork app settings.");
                         ebd.WithFooter("Fork is a freemium Minecraft server management.");
                         //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
                         await vChan.SendMessageAsync($"<@{guild.OwnerId}>", false, ebd.Build());
-                        var msgg = await vChan.SendMessageAsync(null, false, Bot_Tools.Embed("Dont remove this message, this message will be updated continuously", 20));
+                        var msgg = await vChan.SendMessageAsync(null, false,
+                            BotTools.Embed("Dont remove this message, this message will be updated continuously", 20));
                         server.InsertRole(guild.Id, roleee.Id, vChan.Id, msgg.Id);
                     }
-                   else
+                    else
                     {
                         var ebd = new EmbedBuilder();
                         ebd.Color = Color.Red;
@@ -136,137 +143,118 @@ using Discord.WebSocket;
                         //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
                         await guild.DefaultChannel.SendMessageAsync($"<@{guild.OwnerId}>", false, ebd.Build());
                     }
-                   
-                }
-            } catch (Exception ex) { Console.WriteLine(ex.ToString()); } });
-        await Task.CompletedTask;
-    }
-    private async Task Leftguild(SocketGuild guild)
-    {
-        var Do = Task.Run(async () => {
-            try
-            {
-                if ((bool)server.CheckAuth("null", guild.Id) == true || (bool)server.CheckRoleAndChannel(guild.Id) == true){
-                    string token = (string)server.GetTokenOfServer(guild.Id);
-                    string ip = (string)server.GetIPForToken(token, 1);
-                  try
-                    {
-                        await Bot_Tools.Sendmsg(guild.Id, $"status|OnHold");
-                        await Bot_Tools.Sendmsg(guild.Id, $"rec");
-                        await Bot_Tools.Sendmsg(guild.Id, $"unsub|serverListEvent");
-                        await Bot_Tools.Sendmsg(guild.Id, $"unsub|playerEvent");
-                    } catch (Exception ex)
-                    {
-
-                    }
-
-
-                    server.LeaveServer(guild.Id);
-                }
-              
-            }
-            catch (Exception ex) { Console.WriteLine(ex.ToString()); }
-        });
-        await Task.CompletedTask;
-    }
-
-    private async Task BulkDeleteAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
-        {
-            await Task.CompletedTask;
-        }
-    public async Task Issues(Exception k)
-    {
-        KKK.IsClientReady = false;
-    }
-        public async Task ready()
-        {
-        KKK.IsClientReady = true;
-            try
-            {
-                var Do = Task.Run(() => { try { 
-                    
-                    
-                    
-                    } catch (Exception ex) { } });
-                await KKK.Client.SetGameAsync($"Working On it", null, ActivityType.Listening);
-            }
-            catch (Exception ex)
-            {
-
-            }
-        }
-
-        public static bool IsNullOrWhiteSpace(string value)
-        {
-            if (value is null)
-            {
-                return true;
-            }
-
-            for (int i = 0, loopTo = value.Length - 1; i <= loopTo; i++)
-            {
-                if (!char.IsWhiteSpace(value[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private async Task welcome(SocketGuildUser user)
-        {
-        }
-
-        private async Task HandleCommandAsync(SocketMessage message)
-        {
-            SocketUserMessage userMessage = message as SocketUserMessage;
-            if (userMessage is null || userMessage.Author.IsBot || userMessage.Author.IsWebhook)
-                return;
-            int argPos = 0;
-            var context = new SocketCommandContext(KKK.Client, userMessage);
-            try
-            {
-           
-            if (!(message.Channel.GetType().ToString() == "Discord.WebSocket.SocketDMChannel"))
-                {
-                    if (!userMessage.HasMentionPrefix(KKK.Client.CurrentUser, ref argPos) && !userMessage.HasStringPrefix(KKK.prefix, ref argPos, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return;
-                    }
-                    else
-                    {
-                    var Roleid = (long)server.GetRoleandChannel(context.Guild.Id,0);
-                    var authorr = context.Guild.GetUser(context.Message.Author.Id);
-                   var thisss = context.Message.Author as SocketGuildUser;
-                    if (authorr.Roles.Any(r => r.Id == (ulong)Roleid) == true || thisss.GuildPermissions.ManageGuild == true)
-                    {
-                        if (userMessage.Content.ToLower().StartsWith($"{KKK.prefix}auth") || userMessage.Content.ToLower().StartsWith($"{KKK.prefix}leave") || (bool)server.CheckAuth("null", context.Guild.Id) == true) //if its for authentication let the command to be executed
-                        {
-                            string command = userMessage.Content.Substring(argPos).Trim();
-                            var result = await KKK.CommandService.ExecuteAsync(context, command, Services);
-
-                            if (!result.IsSuccess)
-                            {
-
-                                if (!((int?)result.Error == (int?)CommandError.UnknownCommand) == true)
-                                {
-                                    Console.WriteLine(result.ErrorReason);
-                                }
-                            }
-                        }
-                    }
-                
-                    }
-                }
-                else
-                {
-                    await context.Channel.SendMessageAsync($"Im Not Working yet", false, null);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }
+        });
+    }
+
+    private async Task OnGuildLeave(SocketGuild guild)
+    {
+        await Task.Run(async () =>
+        {
+            try
+            {
+                if (server.CheckAuth("null", guild.Id) ||
+                    server.CheckRoleAndChannel(guild.Id))
+                {
+                    try
+                    {
+                        await BotTools.Sendmsg(guild.Id, $"status|OnHold");
+                        await BotTools.Sendmsg(guild.Id, $"rec");
+                        await BotTools.Sendmsg(guild.Id, $"unsub|serverListEvent");
+                        await BotTools.Sendmsg(guild.Id, $"unsub|playerEvent");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Exception occured: "+ex.Message);
+                    }
+                    server.LeaveServer(guild.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        });
+    }
+
+    private async Task BulkDeleteAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages,
+        ISocketMessageChannel channel)
+    { }
+
+    private async Task OnClientDisconnect(Exception k)
+    {
+        KKK.IsClientReady = false;
+    }
+
+    private async Task OnClientReady()
+    {
+        KKK.IsClientReady = true;
+        try
+        {
+            await KKK.Client.SetGameAsync($"Working On it", null, ActivityType.Listening);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Exception occured: "+ex.Message);
         }
     }
+
+    private async Task welcome(SocketGuildUser user)
+    {
+    }
+
+    private async Task HandleCommandAsync(SocketMessage message)
+    {
+        SocketUserMessage userMessage = message as SocketUserMessage;
+        if (userMessage is null || userMessage.Author.IsBot || userMessage.Author.IsWebhook)
+            return;
+        int argPos = 0;
+        var context = new SocketCommandContext(KKK.Client, userMessage);
+        try
+        {
+            if (message.Channel.GetType().ToString() != "Discord.WebSocket.SocketDMChannel")
+            {
+                if (!userMessage.HasMentionPrefix(KKK.Client.CurrentUser, ref argPos) &&
+                    !userMessage.HasStringPrefix(KKK.prefix, ref argPos, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                var roleid = server.GetRoleandChannel(context.Guild.Id, 0);
+                var authorr = context.Guild.GetUser(context.Message.Author.Id);
+                var thisss = context.Message.Author as SocketGuildUser;
+                if (authorr.Roles.Any(r => r.Id == (ulong) roleid) || thisss.GuildPermissions.ManageGuild)
+                {
+                    if (userMessage.Content.ToLower().StartsWith($"{KKK.prefix}auth") ||
+                        userMessage.Content.ToLower().StartsWith($"{KKK.prefix}leave") ||
+                        server.CheckAuth("null", context.Guild.Id)) //if its for authentication let the command to be executed
+                    {
+                        string command = userMessage.Content.Substring(argPos).Trim();
+                        var result = await KKK.CommandService.ExecuteAsync(context, command, Services);
+
+                        if (!result.IsSuccess)
+                        {
+                            if ((int?) result.Error != (int?) CommandError.UnknownCommand)
+                            {
+                                Console.WriteLine(result.ErrorReason);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                await context.Channel.SendMessageAsync($"Im Not Working yet", false, null);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Exception occured: "+ex.Message);
+        }
+    }
+}
