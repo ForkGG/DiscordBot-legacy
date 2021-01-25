@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -108,7 +109,7 @@ public class BotTools : InteractiveBase
 
     [Command("rec", RunMode = RunMode.Async)]
     [Alias("rec")]
-    [Summary("Recreates role and channels. usage: (prefix)rec")]
+    [Summary("Recreates Fork related role and channel")]
     public async Task Rec()
     {
         await Task.Run(async () =>
@@ -136,13 +137,10 @@ public class BotTools : InteractiveBase
 
                 try
                 {
-                    if (Context.Guild.TextChannels.Any(x => x.Name.ToLower() == "Fork-Bot".ToLower()))
+                    foreach (var channel in Context.Guild.Channels.Where(x =>
+                        string.Equals(x.Name, "Fork-Bot", StringComparison.CurrentCultureIgnoreCase)))
                     {
-                        foreach (var Chan in Context.Guild.Channels.Where(x => x.Name.ToLower() == "Fork-Bot".ToLower())
-                        )
-                        {
-                            await Chan.DeleteAsync();
-                        }
+                        await channel.DeleteAsync();
                     }
                 }
                 catch (Exception ex)
@@ -170,15 +168,19 @@ public class BotTools : InteractiveBase
                     ebd.WithCurrentTimestamp();
                     ebd.WithAuthor($"Fork Server Management", Context.Guild.CurrentUser.GetAvatarUrl());
                     ebd.WithDescription(
-                        "Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." +
+                        "Hello there," +
                         Environment.NewLine +
-                        "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" +
-                        Environment.NewLine + "You can check for your token in fork app settings.");
-                    ebd.WithFooter("Fork is a freemium Minecraft server management.");
+                        "I'm Fork Bot if you don't know me, I can help you control your Fork Minecraft servers and display their status in Discord." +
+                        Environment.NewLine +
+                        "I made a private channel for you, please use `$auth [token]` to link this Discord server with your Fork app." +
+                        Environment.NewLine +
+                        "You can check for your token in Fork app settings.");
                     //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
                     await vChan.SendMessageAsync($"<@{Context.Guild.OwnerId}>", false, ebd.Build());
                     var msgg = await vChan.SendMessageAsync(null, false,
-                        BotTools.Embed("Dont remove this message, this message will be updated continuously", 20));
+                        Embed(
+                            "Don't remove this message, this message will be updated continuously and display the status of you Fork servers.",
+                            20));
                     server.InsertRole(Context.Guild.Id, roleee.Id, vChan.Id, msgg.Id);
                 }
                 else
@@ -188,7 +190,6 @@ public class BotTools : InteractiveBase
                     ebd.WithCurrentTimestamp();
                     ebd.WithAuthor($"Error", Context.Guild.CurrentUser.GetAvatarUrl());
                     ebd.WithDescription(warning);
-                    ebd.WithFooter("Fork is a freemium Minecraft server management.");
                     //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
                     await Context.Guild.DefaultChannel.SendMessageAsync($"<@{Context.Guild.OwnerId}>", false,
                         ebd.Build());
@@ -203,15 +204,15 @@ public class BotTools : InteractiveBase
 
     [Command("stop", RunMode = RunMode.Async)]
     [Alias("stop")]
-    [Summary("Stops your mc server. usage: (prefix)stop [worldname]")]
-    public async Task stop(string worldname)
+    [Summary("Stops a specific Minecraft server")]
+    public async Task Stop(string servername)
     {
         try
         {
             var msg = await ReplyAsync(Context.Message.Author.Mention, false,
                 Embed("Alright give me few seconds please."));
             int result = await Sendmsg(Context.Guild.Id,
-                $"stop|{worldname}|{Context.User.Username}#{Context.User.Discriminator}|{Context.Channel.Id}|{msg.Id}");
+                $"stop|{servername}|{Context.User.Username}#{Context.User.Discriminator}|{Context.Channel.Id}|{msg.Id}");
             switch (result)
             {
                 case 1:
@@ -227,7 +228,7 @@ public class BotTools : InteractiveBase
                         msgProperty.Content = $"{Context.Message.Author.Mention}";
                         msgProperty.Embed =
                             Embed(
-                                "Oops. Looks like your fork app isnt online or connection timed out, please restart it.",
+                                "Oops. Looks like your fork app isn't online or connection timed out, please restart it.",
                                 40);
                     });
                     break;
@@ -241,15 +242,15 @@ public class BotTools : InteractiveBase
 
     [Command("start", RunMode = RunMode.Async)]
     [Alias("start")]
-    [Summary("Starts your mc server. usage: (prefix)start [worldname]")]
-    public async Task start(string worldname)
+    [Summary("Starts a specific Minecraft server")]
+    public async Task Start(string servername)
     {
         try
         {
             var msg = await ReplyAsync(Context.Message.Author.Mention, false,
                 Embed("Alright give me few seconds please."));
             int result = await Sendmsg(Context.Guild.Id,
-                $"start|{worldname}|{Context.User.Username}#{Context.User.Discriminator}|{Context.Channel.Id}|{msg.Id}");
+                $"start|{servername}|{Context.User.Username}#{Context.User.Discriminator}|{Context.Channel.Id}|{msg.Id}");
             switch (result)
             {
                 case 1:
@@ -279,8 +280,8 @@ public class BotTools : InteractiveBase
 
     [Command("notify", RunMode = RunMode.Async)]
     [Alias("notification")]
-    [Summary("Subscribe to your mc server notifications, (player join/leave) usage: (prefix)notify [mention channel]")]
-    public async Task notify(SocketGuildChannel channel)
+    [Summary("Subscribe to Player join/leave events")]
+    public async Task Notify(SocketGuildChannel channel)
     {
         try
         {
@@ -300,7 +301,7 @@ public class BotTools : InteractiveBase
                 else
                 {
                     warn = Environment.NewLine +
-                           "Couldnt connect to your fork server but dont worry, ill tell your fork server to send me server list once its connected";
+                           "Couldn't connect to your Fork app but don't worry, I'll send you updates as soon as it's connected again.";
                 }
 
                 await msg.ModifyAsync(msgProperty =>
@@ -328,8 +329,8 @@ public class BotTools : InteractiveBase
 
     [Command("dnotify", RunMode = RunMode.Async)]
     [Alias("dnotification")]
-    [Summary("Unsubscribes to your mc server notifications. usage: (prefix)dnotify")]
-    public async Task dnotify()
+    [Summary("Unsubscribes from Player join/leave events")]
+    public async Task DNotify()
     {
         try
         {
@@ -348,7 +349,7 @@ public class BotTools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Unsubscribed to notifications successfully.", 20);
+                    msgProperty.Embed = Embed("Unsubscribed from player notifications successfully.", 20);
                 });
             }
             else if (!server.CheckIfNotifyExist(Context.Guild.Id))
@@ -356,7 +357,7 @@ public class BotTools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("You are not subscribed to notifications.", 40);
+                    msgProperty.Embed = Embed("You are not subscribed to player notifications.", 40);
                 });
             }
         }
@@ -366,10 +367,10 @@ public class BotTools : InteractiveBase
         }
     }
 
-    [Command("sub", RunMode = RunMode.Async)]
-    [Alias("subscribe")]
-    [Summary("Subscribe to an event. usage: (prefix)sub")]
-    public async Task sub(bool check)
+    //[Command("sub", RunMode = RunMode.Async)]
+    //[Alias("subscribe")]
+    //[Summary("Subscribe to an event. usage: (prefix)sub")]
+    public async Task Sub(bool check)
     {
         try
         {
@@ -387,7 +388,9 @@ public class BotTools : InteractiveBase
                         IMessageChannel chan =
                             (IMessageChannel) Context.Guild.GetChannel((ulong) server.GetSeventCH(Context.Guild.Id, 0));
                         var msgg = await chan.SendMessageAsync(null, false,
-                            Embed("Dont remove this message, this message will be updated continuously", 20));
+                            Embed(
+                                "Don't remove this message, this message will be updated continuously and display the status of you Fork servers.",
+                                20));
                         server.UpdateSEvent(Context.Guild.Id, msgg.Id, truefalse);
                         string warn = null;
                         if (CheckConnection(ip))
@@ -397,7 +400,7 @@ public class BotTools : InteractiveBase
                         else
                         {
                             warn = Environment.NewLine +
-                                   "Couldnt connect to your fork server but dont worry, ill tell your fork server to enable server events once its connected";
+                                   "Couldn't connect to your Fork app but dont worry, I'll send updates as soon as it is connected again.";
                         }
 
                         await msg.ModifyAsync(msgProperty =>
@@ -456,9 +459,9 @@ public class BotTools : InteractiveBase
         }
     }
 
-    [Command("ping", RunMode = RunMode.Async)]
-    [Alias("latency")]
-    [Summary("Shows the websocket connection's latency and time it takes to send a message. usage: (prefix)ping")]
+    //[Command("ping", RunMode = RunMode.Async)]
+    //[Alias("latency")]
+    //[Summary("Shows the websocket connection's latency and time it takes to send a message. usage: (prefix)ping")]
     public async Task PingAsync()
     {
         try
@@ -469,21 +472,32 @@ public class BotTools : InteractiveBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception occured: "+ex.Message);
+            Console.WriteLine("Exception occured: " + ex.Message);
         }
     }
 
     [Command("auth", RunMode = RunMode.Async)]
     [Alias("authorize")]
-    [Summary("Authorizes your discord server with fork mc server. usage: (prefix)auth [token]")]
-    public async Task auth(string token)
+    [Summary("Links your Discord server to your Fork app")]
+    public async Task Auth(string token)
     {
         try
         {
             await Context.Message.DeleteAsync();
             var msg = await ReplyAsync(Context.Message.Author.Mention, false,
                 Embed("Alright give me few seconds please."));
-            if (!server.CheckAuth(token, Context.Guild.Id) && server.CheckOnhold(token))
+            if (!server.CheckOnhold(token))
+            {
+                await msg.ModifyAsync(msgProperty =>
+                {
+                    msgProperty.Content = $"{Context.Message.Author.Mention}";
+                    msgProperty.Embed =
+                        Embed(
+                            "Couldn't connect to your Fork app. Either it is not running, Fork Bot is not enabled or your Fork app is already linked to another Discord server.",
+                            40);
+                });
+            }
+            else if (!server.CheckAuth(token, Context.Guild.Id) && server.CheckOnhold(token))
             {
                 //sorting the token goes here
                 //After connection if server replies, then its ok
@@ -503,7 +517,7 @@ public class BotTools : InteractiveBase
                     await msg.ModifyAsync(msgProperty =>
                     {
                         msgProperty.Content = $"{Context.Message.Author.Mention}";
-                        msgProperty.Embed = Embed("Great, your discord server is now authorized with your fork server.",
+                        msgProperty.Embed = Embed("Great, your discord server is now linked to your Fork app.",
                             20);
                     });
                 }
@@ -512,7 +526,7 @@ public class BotTools : InteractiveBase
                     await msg.ModifyAsync(msgProperty =>
                     {
                         msgProperty.Content = $"{Context.Message.Author.Mention}";
-                        msgProperty.Embed = Embed("Couldnt connect to your fork server, make sure its running.", 40);
+                        msgProperty.Embed = Embed("Couldn't connect to your Fork app, make sure it's running.", 40);
                     });
                 }
             }
@@ -522,91 +536,70 @@ public class BotTools : InteractiveBase
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
                     msgProperty.Embed =
-                        Embed("Sorry, but this discord server or the token is already authorized or invalid.", 40);
+                        Embed("Sorry, but this Discord server or the token is already authorized or invalid.", 40);
                 });
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception occured: "+ex.Message);
+            Console.WriteLine("Exception occured: " + ex.Message);
         }
     }
 
     [Command("help", RunMode = RunMode.Async)]
-    [Summary("All command details, for specific command details use (prefix)help [commandname]")]
-    public async Task help(string commandname = "all")
+    [Summary("Lists all available commands")]
+    public async Task Help()
     {
         try
         {
             EmbedBuilder eb = new EmbedBuilder {Color = Color.Blue};
-            EmbedBuilder owner = new EmbedBuilder {Color = Color.Blue};
-            List<CommandInfo> commands = KKK.CommandService.Commands.ToList();
-            bool kwqw = false;
             bool onemod = false;
-            if (commandname == "all")
+            List<CommandInfo> commands = new();
+            foreach (ModuleInfo modulename in KKK.CommandService.Modules)
             {
-                foreach (ModuleInfo modulename in KKK.CommandService.Modules)
+                commands.AddRange(modulename.Commands);
+            }
+            commands.Sort((a, b) => a.CustomPriority().CompareTo(b.CustomPriority()));
+            StringBuilder names = new();
+            StringBuilder descriptions = new();
+            foreach (CommandInfo command in commands)
+            {
+                string cmdName = command.Name;
+                if (command.Parameters.Count > 0)
                 {
-                    string list = "";
-                    foreach (CommandInfo command in modulename.Commands)
+                    cmdName += " [";
+                    for (int i = 0; i < command.Parameters.Count; i++)
                     {
-                        kwqw = true;
-                        list += $"`{command.Name}` | ";
+                        cmdName += command.Parameters[i];
+                        if (i < command.Parameters.Count - 1)
+                        {
+                            cmdName += " ";
+                        }
                     }
-                    eb.AddField(modulename.Name, list);
+                    cmdName += "]";
                 }
-            }
-            else if (commandname != "all")
-            {
-                foreach (CommandInfo command in commands)
-                {
-                    if (command.Name == commandname)
-                    {
-                        kwqw = true;
-                        onemod = true;
-                        eb.AddField(command.Name, command.Summary.Replace("(prefix)", KKK.prefix));
-                    }
-                }
+                names.Append($"${cmdName}{Environment.NewLine}");
+                descriptions.Append(command.Summary + Environment.NewLine);
             }
 
-            if (!kwqw)
-            {
-                eb.Color = Color.Red;
-                eb.Description = $"Sorry but we couldn't find ({commandname}) in commands list";
-            }
-            else
-            {
-                eb.WithCurrentTimestamp();
+            eb.AddField("Command", names.ToString(), true);
+            eb.AddField("Description", descriptions.ToString(), true);
 
-                if (!onemod)
-                {
-                    eb.WithAuthor("Command List", Context.Client.CurrentUser.GetAvatarUrl());
-                    eb.Description = $"Use `{KKK.prefix}help [commandname]` to get more details about specific command";
-                }
-                else
-                {
-                    eb.WithAuthor($"Info about {commandname} command", Context.Client.CurrentUser.GetAvatarUrl());
-                }
-
-                eb.WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl());
-                eb.WithFooter("Requested By: " + Context.User.Username + "#" + Context.User.Discriminator);
-                await Context.Message.Author.SendMessageAsync(null, false, eb.Build());
-            }
-
-            owner.Description = $"I sent you a DM with your request";
-            owner.Color = Color.Green;
-            await ReplyAsync(Context.Message.Author.Mention, false, owner.Build());
+            eb.WithCurrentTimestamp();
+            eb.WithAuthor("Command List", Context.Client.CurrentUser.GetAvatarUrl());
+            eb.WithFooter("Requested by: " + Context.User.Username);
+            await ReplyAsync(Context.Message.Author.Mention, false, eb.Build());
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception occured: "+ex.Message);
+            Console.WriteLine("Exception occured: " + ex.Message);
         }
     }
 
     [Command("leave", RunMode = RunMode.Async)]
     [Alias("leave")]
-    [Summary("Bot will leaves discord server. *be aware, it deletes all guild records in the db* usage: (prefix)leave")]
-    public async Task leave()
+    [Summary("Bot will leave this Discord server")]
+    public async Task Leave()
     {
         try
         {
@@ -615,7 +608,7 @@ public class BotTools : InteractiveBase
                     $"Please type `{Context.Guild.Name}` to confirm.{Environment.NewLine}Be aware this process cant be recovered.{Environment.NewLine}Type anything else to cancel."));
             var msgg = await NextMessageAsync(true, true, TimeSpan.FromMinutes(1));
             await ReplyAsync(Context.Message.Author.Mention, false,
-                Embed($"Sad to see you go.., ill leave shortly, good bye!", 20));
+                Embed($"Sad to see you go.., I'll leave shortly, good bye!", 20));
             if (msgg.Content == Context.Guild.Name)
             {
                 if (server.CheckRoleAndChannel(Context.Guild.Id))
@@ -637,7 +630,7 @@ public class BotTools : InteractiveBase
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("Exception occured: "+ex.Message);
+                        Console.WriteLine("Exception occured: " + ex.Message);
                     }
                 }
 
@@ -652,7 +645,7 @@ public class BotTools : InteractiveBase
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Exception occured: "+ex.Message);
+                    Console.WriteLine("Exception occured: " + ex.Message);
                 }
             }
             else
@@ -673,13 +666,14 @@ public class BotTools : InteractiveBase
             var socket = DiscordBot.allSockets.Find(client => client.ConnectionInfo.ClientIpAddress == ip);
             return socket != null && socket.IsAvailable;
         }
+
         return false;
     }
 
     [Command("unauth", RunMode = RunMode.Async)]
     [Alias("unauthorize")]
-    [Summary("Unauthorizes your discord server with fork mc server. usage: (prefix)unauth")]
-    public async Task unauth()
+    [Summary("Unlinks your Fork app from this Discord server")]
+    public async Task UnAuth()
     {
         try
         {
@@ -696,7 +690,7 @@ public class BotTools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Your discord server got unlinked successfully.", 20);
+                    msgProperty.Embed = Embed("Your discord server got unlinked from your Fork app successfully.", 20);
                 });
             }
             else
@@ -704,13 +698,13 @@ public class BotTools : InteractiveBase
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";
-                    msgProperty.Embed = Embed("Your discord server isnt linked.", 40);
+                    msgProperty.Embed = Embed("Your discord server isn't linked to a Fork app.", 40);
                 });
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Exception occured: "+ex.Message);
+            Console.WriteLine("Exception occured: " + ex.Message);
         }
     }
 }

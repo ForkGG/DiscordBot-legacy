@@ -82,7 +82,7 @@ public class CommandHandler
                     catch (Exception ex)
                     {
                         warning +=
-                            $"`Fork-Mods` role detected, please move my role to top roles and authenticate using `$auth [your token]` then run `$rec` to clean it." +
+                            $"`Fork-Mods` role detected, please move my role above the `Fork-Mods` role and authenticate using `$auth [token]` then run `$rec` to clean it." +
                             Environment.NewLine;
                     }
 
@@ -99,7 +99,7 @@ public class CommandHandler
                     catch (Exception ex)
                     {
                         warning +=
-                            $"`Fork-Bot` channel detected, please move my role to top roles and authenticate using `$auth [your token]` then run `$rec` to clean it." +
+                            $"`Fork-Bot` channel detected, please move my role above the `Fork-Mods` role and authenticate using `$auth [token]` then run `$rec` to clean it." +
                             Environment.NewLine;
                     }
 
@@ -121,15 +121,17 @@ public class CommandHandler
                         ebd.WithCurrentTimestamp();
                         ebd.WithAuthor($"Fork Server Management", guild.CurrentUser.GetAvatarUrl());
                         ebd.WithDescription(
-                            "Hello there!, Im Fork if you dont know me, i can help you to handle and recieve notifications about your minecraft server." +
+                            "Hello there," +
                             Environment.NewLine +
-                            "I made a private channel for you, please use `$auth [token]` to link this discord server with your fork mc server" +
-                            Environment.NewLine + "You can check for your token in fork app settings.");
-                        ebd.WithFooter("Fork is a freemium Minecraft server management.");
+                            "I'm Fork Bot if you don't know me, I can help you control your Fork Minecraft servers and display their status in Discord." +
+                            Environment.NewLine +
+                            "I made a private channel for you, please use `$auth [token]` to link this Discord server with your Fork app." +
+                            Environment.NewLine + 
+                            "You can check for your token in Fork app settings.");
                         //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
                         await vChan.SendMessageAsync($"<@{guild.OwnerId}>", false, ebd.Build());
                         var msgg = await vChan.SendMessageAsync(null, false,
-                            BotTools.Embed("Dont remove this message, this message will be updated continuously", 20));
+                            BotTools.Embed("Don't remove this message, this message will be updated continuously and display the status of you Fork servers.", 20));
                         server.InsertRole(guild.Id, roleee.Id, vChan.Id, msgg.Id);
                     }
                     else
@@ -139,7 +141,6 @@ public class CommandHandler
                         ebd.WithCurrentTimestamp();
                         ebd.WithAuthor($"Error", guild.CurrentUser.GetAvatarUrl());
                         ebd.WithDescription(warning);
-                        ebd.WithFooter("Fork is a freemium Minecraft server management.");
                         //var ownerr = KKK.Client.GetGuild(guild.Id).OwnerId;
                         await guild.DefaultChannel.SendMessageAsync($"<@{guild.OwnerId}>", false, ebd.Build());
                     }
