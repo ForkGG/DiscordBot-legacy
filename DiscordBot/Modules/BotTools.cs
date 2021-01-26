@@ -507,7 +507,7 @@ public class BotTools : InteractiveBase
                     {
                         await Rec();
                     }
-
+                    DiscordBot.AliveTokens.Add(token);
                     await Sendmsg(Context.Guild.Id, $"subscribe|serverListEvent");
 
                     await msg.ModifyAsync(msgProperty =>
@@ -635,6 +635,8 @@ public class BotTools : InteractiveBase
                 await Sendmsg(Context.Guild.Id, $"unsub|serverListEvent");
                 await Sendmsg(Context.Guild.Id, $"unsub|playerEvent");
                 server.LeaveServer(Context.Guild.Id);
+                string token = server.GetTokenOfServer(Context.Guild.Id);
+                DiscordBot.AliveTokens.Remove(token);
                 try
                 {
                     await Context.Guild.LeaveAsync();
@@ -683,6 +685,7 @@ public class BotTools : InteractiveBase
                 await Sendmsg(Context.Guild.Id, $"unsub|serverListEvent");
                 await Sendmsg(Context.Guild.Id, $"unsub|playerEvent");
                 server.LeaveServer(Context.Guild.Id);
+                DiscordBot.AliveTokens.Remove(token);
                 await msg.ModifyAsync(msgProperty =>
                 {
                     msgProperty.Content = $"{Context.Message.Author.Mention}";

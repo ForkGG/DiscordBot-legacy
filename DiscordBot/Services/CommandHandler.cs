@@ -164,10 +164,12 @@ public class CommandHandler
                 {
                     try
                     {
+                        string token = server.GetTokenOfServer(guild.Id);
                         await BotTools.Sendmsg(guild.Id, $"status|OnHold");
                         await BotTools.Sendmsg(guild.Id, $"rec");
                         await BotTools.Sendmsg(guild.Id, $"unsub|serverListEvent");
                         await BotTools.Sendmsg(guild.Id, $"unsub|playerEvent");
+                        DiscordBot.AliveTokens.Remove(token);
                     }
                     catch (Exception ex)
                     {
