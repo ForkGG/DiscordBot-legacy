@@ -11,7 +11,7 @@ If you run Fork in `DEBUG` mode it will look for this running locally.
 To build and run this code please follow these steps:
  1. Clone/fork this repository
  2. Add Discord.NET beta to nuget package sources: https://www.myget.org/F/discord-net/api/v3/index.json
- 3. Add a copy of the [config.json](https://github.com/ForkGG/DiscordBot/config.json) to the `DiscordBot` directory and add the token of a Discord bot created [here](https://discord.com/developers/applications)
+ 3. Add a copy of the [config.json](https://github.com/ForkGG/DiscordBot/blob/main/config.json) to the `DiscordBot` directory and add the token of a Discord bot created [here](https://discord.com/developers/applications)
  4. The project should now be able to build and run. To test it you should also run the [Fork project](https://github.com/ForkGG/Fork) in `DEBUG` mode on the same machine
  
  ## Credits
