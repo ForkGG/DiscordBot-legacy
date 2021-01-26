@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -104,8 +106,14 @@ public class DiscordBot
             // nothing, just pauses the tasks
         } while (KKK.IsClientReady != true);
 
-        Console.WriteLine("Its ready, lets start, shall we?");
+        Console.WriteLine("It's ready, lets start, shall we?");
+#if RELEASE
+        var server = new WebSocketServer("wss://0.0.0.0:8181");
+        var config = BuildConfig();
+        server.Certificate = new X509Certificate2(config["certPath"], config["certPassword"]);
+#elif DEBUG
         var server = new WebSocketServer("ws://0.0.0.0:8181");
+#endif
         server.Start(socket =>
         {
             socket.OnOpen = () =>

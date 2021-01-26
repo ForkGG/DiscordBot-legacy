@@ -1,3 +1,5 @@
 {
-	"token": ""
+	"token": "",
+	"certPath": "cert.pfx",
+	"certPassword": ""
 }
