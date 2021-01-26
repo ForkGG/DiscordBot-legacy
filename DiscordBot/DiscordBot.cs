@@ -76,7 +76,11 @@ public class DiscordBot
         //    UpdateServer = true;
         //}
         //ILog logger = LogManager.GetLogger(typeof(FleckLog));
+#if DEBUG
         FleckLog.Level = LogLevel.Debug;
+#else
+        FleckLog.Level = LogLevel.Info;
+#endif
         //FleckLog.LogAction = (level, message, ex) => {
         //    switch (level)
         //    {
