@@ -197,7 +197,7 @@ public class CommandHandler
         KKK.IsClientReady = true;
         try
         {
-            await KKK.Client.SetGameAsync($"Working On it", null, ActivityType.Listening);
+            await KKK.Client.SetGameAsync($"your Minecraft servers", null, ActivityType.Watching);
         }
         catch (Exception ex)
         {

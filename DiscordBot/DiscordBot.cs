@@ -154,7 +154,7 @@ public class DiscordBot
             };
             socket.OnClose = () =>
             {
-                Console.WriteLine("Close!");
+                Console.WriteLine("Closed connection: "+socket.ConnectionInfo.ClientIpAddress);
                 allSockets.Remove(socket);
                 if (serverr.CheckIfIPExist(socket.ConnectionInfo.ClientIpAddress))
                 {
