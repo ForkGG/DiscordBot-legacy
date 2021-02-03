@@ -180,17 +180,10 @@ public class DiscordBot
                         {
                             case "login":
                                 string token = codes[1];
-
-                                if (!serverr.CheckAuth(token) 
-                                    && !serverr.CheckOnhold(token, socket.ConnectionInfo.ClientIpAddress))
-                                {
-                                    serverr.InsertOnhold(token, socket.ConnectionInfo.ClientIpAddress);
-                                    Console.WriteLine("Token: " + token +
-                                                      $" IP: {socket.ConnectionInfo.ClientIpAddress} Added to onhold list");
-                                    await socket.Send("status|OnHold");
-                                }
-                                else if (serverr.CheckAuth(token) 
-                                         && serverr.CheckAuth2(token, socket.ConnectionInfo.ClientIpAddress))
+                                
+                                if (serverr.CheckAuth(token) 
+                                         //&& serverr.CheckAuth2(token, socket.ConnectionInfo.ClientIpAddress)
+                                         )
                                 {
                                     if (!AliveTokens.Contains(
                                         serverr.GetTokenForkIp(socket.ConnectionInfo.ClientIpAddress)))
@@ -231,6 +224,14 @@ public class DiscordBot
                                             Console.WriteLine("Exception occured: "+ex.Message);
                                         }
                                     }
+                                } else if (!serverr.CheckAuth(token)
+                                    //&& !serverr.CheckOnhold(token, socket.ConnectionInfo.ClientIpAddress)
+                                    )
+                                {
+                                    serverr.InsertOnhold(token, socket.ConnectionInfo.ClientIpAddress);
+                                    Console.WriteLine("Token: " + token +
+                                                      $" IP: {socket.ConnectionInfo.ClientIpAddress} Added to onhold list");
+                                    await socket.Send("status|OnHold");
                                 }
 
                                 break;
@@ -484,29 +485,82 @@ public class DiscordBot
             string playerCount = split[i + 4];
             string maxPlayers = split[i + 5];
             //TODO replace these with custom cool looking emojis
-            string statusEmoji;
+            Emote statusEmote;
             if (serverStatus.ToLower().Equals("running"))
             {
-                statusEmoji = ":green_circle:";
+                if (!Emote.TryParse("<:Online:800460070709362739>", out statusEmote))
+                {
+                    statusEmote = Emote.Parse(":green_circle:");
+                }
             }
             else if (serverStatus.ToLower().Equals("stopped"))
             {
-                statusEmoji = ":red_circle:";
+                if (!Emote.TryParse("<:Offline:800460061255663646>", out statusEmote))
+                {
+                    statusEmote = Emote.Parse(":red_circle:");
+                }
             }
             else if (serverStatus.ToLower().Equals("starting"))
             {
-                statusEmoji = ":yellow_circle:";
+                if (!Emote.TryParse("<:Starting:800460572268953670>", out statusEmote))
+                {
+                    statusEmote = Emote.Parse(":yellow_circle:");
+                }
             }
             else
             {
-                statusEmoji = ":black_circle:";
+                statusEmote = Emote.Parse(":black_circle:");
             }
 
-            //TODO make serverType an emoji as well
-            //Code for serverType -> emoji
+            string typeEmote;
+            if (serverType.ToLower().Equals("vanilla"))
+            {
+                if (Emote.TryParse("<:Vanilla:800457564403400724>", out _))
+                {
+                    typeEmote = "<:Vanilla:800457564403400724>";
+                }
+                else
+                {
+                    typeEmote = "Vanilla";
+                }
+            } else if (serverType.ToLower().Equals("paper"))
+            {
+                if (Emote.TryParse("<:Paper:800457547907596359>", out _))
+                {
+                    typeEmote = "<:Paper:800457547907596359>";
+                }
+                else
+                {
+                    typeEmote = "Paper";
+                }
+            } else if (serverType.ToLower().Equals("spigot"))
+            {
+                if (Emote.TryParse("<:Spigot:800458118857228298>", out _))
+                {
+                    typeEmote = "<:Spigot:800458118857228298>";
+                }
+                else
+                {
+                    typeEmote = "Spigot";
+                }
+            } else if (serverType.ToLower().Equals("waterfall"))
+            {
+                if (Emote.TryParse("<:Waterfall:800457575590002708>", out _))
+                {
+                    typeEmote = "<:Waterfall:800457575590002708>";
+                }
+                else
+                {
+                    typeEmote = "Waterfall";
+                }
+            }
+            else
+            {
+                typeEmote = "Unknown";
+            }
 
             //Build server string
-            string server = $"{statusEmoji} {serverName} ({serverType} {serverVersion}) {playerCount}/{maxPlayers}" +
+            string server = $"{statusEmote} {serverName} ({typeEmote} {serverVersion}) {playerCount}/{maxPlayers}" +
                             Environment.NewLine;
             serverrr += server;
             i = i + 6;
@@ -514,6 +568,7 @@ public class DiscordBot
 
         var ebd = new EmbedBuilder();
         Color Colorr = new Color(21, 22, 34);
+        ebd.WithTitle("Your current servers");
         ebd.WithDescription($"{serverrr}");
         ebd.WithCurrentTimestamp();
         return ebd.Build();

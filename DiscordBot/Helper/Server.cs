@@ -414,7 +414,16 @@ CREATE TABLE `Notify` (
     public void InsertOnhold(string token, string ip)
     {
         using var sqlconn = new SQLiteConnection(connectionstr);
-        string insert = "INSERT INTO Onhold(Token,IP) VALUES (@token,@ip)";
+
+        string insert;
+        if (CheckOnhold("", ip))
+        {
+            insert = "UPDATE Onhold SET Token = @token WHERE IP = @ip";
+        }
+        else
+        {
+            insert = "INSERT INTO Onhold(Token,IP) VALUES (@token,@ip)";
+        }
         var cmd = new SQLiteCommand(insert, sqlconn);
         cmd.Parameters.AddWithValue("@token", token);
         cmd.Parameters.AddWithValue("@ip", ip);
