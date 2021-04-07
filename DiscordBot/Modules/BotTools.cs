@@ -201,7 +201,7 @@ public class BotTools : InteractiveBase
     [Command("stop", RunMode = RunMode.Async)]
     [Alias("stop")]
     [Summary("Stops a specific Minecraft server")]
-    public async Task Stop(string servername)
+    public async Task Stop([Remainder]string servername)
     {
         try
         {
@@ -239,7 +239,7 @@ public class BotTools : InteractiveBase
     [Command("start", RunMode = RunMode.Async)]
     [Alias("start")]
     [Summary("Starts a specific Minecraft server")]
-    public async Task Start(string servername)
+    public async Task Start([Remainder]string servername)
     {
         try
         {
