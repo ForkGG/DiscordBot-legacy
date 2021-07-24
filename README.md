@@ -15,5 +15,5 @@ To build and run this code please follow these steps:
  4. The project should now be able to build and run. To test it you should also run the [Fork project](https://github.com/ForkGG/Fork) in `DEBUG` mode on the same machine
  
  ## Credits
- - Thanks to [Alpha-c0d3r | Illusion](https://github.com/Alpha-c0d3r) for coding most of this project
+ - Thanks to [Alpha-c0d3r | Illusion](https://github.com/EN1GMA4) for coding most of this project
  - Thanks to the [Patrons](https://www.patreon.com/forkgg) helping to cover the hosting costs for this Bot
