@@ -12,20 +12,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.3.0-dev-20201223.7" />
-    <PackageReference Include="Discord.Net.WebSocket" Version="2.3.0-dev-20201223.7" />
-    <PackageReference Include="Fleck" Version="1.1.0" />
-    <PackageReference Include="log4net" Version="2.0.12" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="3.1.9" />
+    <PackageReference Include="Discord.InteractivityAddon" Version="2.4.1-preview-20210624.1" />
+    <PackageReference Include="Discord.Net" Version="3.0.0-dev-20210710.3" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="3.0.0-dev-20210710.3" />
+    <PackageReference Include="Fleck" Version="1.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Core" Version="5.0.8" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.9" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Discord.Addons.Interactive">
-      <HintPath>..\Discord.Addons.Interactive.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+    <PackageReference Include="NLog" Version="4.7.10" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.114.3" />
   </ItemGroup>
 
   <ItemGroup>

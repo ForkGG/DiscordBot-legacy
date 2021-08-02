@@ -4,7 +4,8 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.VisualBasic;
-
+namespace DiscordBot
+{
 
     public class LogService
     {
@@ -16,11 +17,11 @@ using Microsoft.VisualBasic;
 
         public static Task ClientLog(LogMessage message)
         {
-           
-                Console.WriteLine(message.ToString());
-                writetolog(message.ToString());
-                return Task.CompletedTask;
-         
+
+            Console.WriteLine(message.ToString());
+            writetolog(message.ToString());
+            return Task.CompletedTask;
+
         }
 
         public static void writetolog(string text)
@@ -104,3 +105,4 @@ using Microsoft.VisualBasic;
             return Task.CompletedTask;
         }
     }
+}
