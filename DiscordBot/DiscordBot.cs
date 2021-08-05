@@ -602,7 +602,7 @@ public class DiscordBot
             MessageCacheSize = 50, AlwaysDownloadUsers = true, ExclusiveBulkDelete = true,
             LogLevel = LogSeverity.Verbose,
             GatewayIntents = GatewayIntents.DirectMessageReactions | GatewayIntents.DirectMessages |
-                             GatewayIntents.GuildBans | GatewayIntents.GuildInvites | GatewayIntents.GuildMembers |
+                             GatewayIntents.GuildBans | GatewayIntents.GuildInvites |
                              GatewayIntents.GuildMessageReactions | GatewayIntents.GuildMessages |
                              GatewayIntents.Guilds | GatewayIntents.GuildIntegrations
         })); // , .TotalShards = 3}))
