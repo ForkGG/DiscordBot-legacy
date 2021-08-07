@@ -122,8 +122,12 @@ namespace DiscordBot
                 try
                 {
                     DatabaseContext context = new DatabaseContext();
-                     context.Remove(context.OnJoin.Single(a => a.Serverid == Context.Guild.Id));
+                    if (context.OnJoin.FirstOrDefault(a => a.Serverid == Context.Guild.Id) != null)
+                    {
+                        context.Remove(context.OnJoin.Single(a => a.Serverid == Context.Guild.Id));
                         context.SaveChanges();
+                    }
+                  
                     string warning = null;
                     try
                     {
@@ -535,7 +539,7 @@ namespace DiscordBot
                 var msg = await ReplyAsync(Context.Message.Author.Mention, false,
                     Embed("Alright give me few seconds please."));
 
-                if (context.OnHold.Any(o => o.Token == token))
+                if (context.Auth.Any(o => o.Token == token))
                 {
                     await msg.ModifyAsync(msgProperty =>
                     {

@@ -429,7 +429,7 @@ namespace DiscordBot
                                                             }
                                                             catch (Exception ex)
                                                             {
-                                                                Console.WriteLine("Exception occured: " + ex.Message);
+                                                                Console.WriteLine("Exception occured: " + ex.ToString());
                                                             }
                                                         });
                                                     }
@@ -438,7 +438,7 @@ namespace DiscordBot
                                         }
                                         catch (Exception ex)
                                         {
-                                            Console.WriteLine("Exception occured: " + ex.Message);
+                                            Console.WriteLine("Exception occured: " + ex.ToString());
                                         }
                                     });
 

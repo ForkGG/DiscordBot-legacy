@@ -190,7 +190,7 @@ namespace DiscordBot
                         }
                         catch (Exception ex)
                         {
-                           logger.Warn($"Exception occured: {ex.Message}");
+                           logger.Warn($"Exception occured: {ex.ToString()}");
                         }
                          context.Remove(context.Auth.Single(a => a.Serverid == guild.Id));
                         context.Remove(context.Notify.Single(a => a.Serverid == guild.Id));
@@ -221,7 +221,7 @@ namespace DiscordBot
             }
             catch (Exception ex)
             {
-               logger.Warn($"Exception occured: {ex.Message}");
+               logger.Warn($"Exception occured: {ex.ToString()}");
             }
         }
 
@@ -231,52 +231,61 @@ namespace DiscordBot
 
         private async Task HandleCommandAsync(SocketMessage message)
         {
-            SocketUserMessage userMessage = message as SocketUserMessage;
-            if (userMessage is null || userMessage.Author.IsBot || userMessage.Author.IsWebhook)
-                return;
-            int argPos = 0;
-            var context = new SocketCommandContext(KKK.Client, userMessage);
-            try
-            {
-                if (message.Channel.GetType().ToString() != "Discord.WebSocket.SocketDMChannel")
-                {
-                    if (!userMessage.HasMentionPrefix(KKK.Client.CurrentUser, ref argPos) &&
-                        !userMessage.HasStringPrefix(KKK.prefix, ref argPos, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return;
-                    }
-                    DatabaseContext contextt = new DatabaseContext();
-                    var roleid = contextt.OnJoin.AsQueryable().Where(a => a.Serverid == context.Guild.Id).Single().Roleid;
-                    var authorr = context.Guild.GetUser(context.Message.Author.Id);
-                    var thisss = context.Message.Author as SocketGuildUser;
-                    if (authorr.Roles.Any(r => r.Id == (ulong)roleid) || thisss.GuildPermissions.ManageGuild)
-                    {
-                        if (userMessage.Content.ToLower().StartsWith($"{KKK.prefix}auth") ||
-                            userMessage.Content.ToLower().StartsWith($"{KKK.prefix}leave")
-                           ) //if its for authentication let the command to be executed
+            _ = Task.Run(async () =>
                         {
-                            string command = userMessage.Content.Substring(argPos).Trim();
-                            var result = await KKK.CommandService.ExecuteAsync(context, command, Services);
 
-                            if (!result.IsSuccess)
+                            SocketUserMessage userMessage = message as SocketUserMessage;
+                            if (userMessage is null || userMessage.Author.IsBot || userMessage.Author.IsWebhook)
+                                return;
+                            int argPos = 0;
+                            var context = new SocketCommandContext(KKK.Client, userMessage);
+                            try
                             {
-                                if ((int?)result.Error != (int?)CommandError.UnknownCommand)
+                                if (message.Channel.GetType().ToString() != "Discord.WebSocket.SocketDMChannel")
                                 {
-                                    Console.WriteLine(result.ErrorReason);
+                                    if (!userMessage.HasMentionPrefix(KKK.Client.CurrentUser, ref argPos) &&
+                                        !userMessage.HasStringPrefix(KKK.prefix, ref argPos, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        return;
+                                    }
+                                    DatabaseContext contextt = new DatabaseContext();
+
+                                    var authorr = context.Guild.GetUser(context.Message.Author.Id);
+                                    var thisss = context.Message.Author as SocketGuildUser;
+                                    ulong roleeid = (contextt.OnJoin.AsQueryable().Where(a => a.Serverid == context.Guild.Id).FirstOrDefault() ==null) ? 0 : contextt.OnJoin.AsQueryable().Where(a => a.Serverid == context.Guild.Id).FirstOrDefault().Roleid;
+
+
+                            
+                                    if (authorr.Roles.Any(r => r.Id == roleeid) || thisss.GuildPermissions.ManageGuild)
+                                    {
+                                        if (userMessage.Content.ToLower().StartsWith($"{KKK.prefix}auth") ||
+                                            userMessage.Content.ToLower().StartsWith($"{KKK.prefix}leave")
+                                           ) //if its for authentication let the command to be executed
+                                        {
+                                            string command = userMessage.Content.Substring(argPos).Trim();
+                                            var result = await KKK.CommandService.ExecuteAsync(context, command, Services);
+
+                                            if (!result.IsSuccess)
+                                            {
+                                                if ((int?)result.Error != (int?)CommandError.UnknownCommand)
+                                                {
+                                                    Console.WriteLine(result.ErrorReason);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    await context.Channel.SendMessageAsync($"Im Not Working yet", false, null);
                                 }
                             }
-                        }
-                    }
-                }
-                else
-                {
-                    await context.Channel.SendMessageAsync($"Im Not Working yet", false, null);
-                }
-            }
-            catch (Exception ex)
-            {
-               logger.Warn($"Exception occured: {ex.Message}");
-            }
+                            catch (Exception ex)
+                            {
+                                logger.Warn($"Exception occured: {ex.ToString()}");
+                            }
+                        });
+      
         }
     }
 }
