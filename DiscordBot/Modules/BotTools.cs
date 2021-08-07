@@ -306,10 +306,15 @@ namespace DiscordBot
                 string ip = context.Auth.AsQueryable().Where(a => a.Serverid == Context.Guild.Id).Single().IP;
                 var msg = await ReplyAsync(Context.Message.Author.Mention, false,
                     Embed("Alright give me few seconds please."));
-                if (server.CheckIfNotifyExist(Context.Guild.Id))
+
+
+                if (context.Notify.Any(o => o.Serverid == Context.Guild.Id))
                 {
                     //await msgg.PinAsync();
-                    server.UpdateNotify(Context.Guild.Id, channel.Id);
+                     var server = context.Notify.First(a => a.Serverid == Context.Guild.Id);
+                    server.Channelid = channel.Id;
+                        context.SaveChanges();
+                    
                     string warn = null;
                     if (CheckConnection(ip))
                     {
@@ -327,10 +332,17 @@ namespace DiscordBot
                         msgProperty.Embed = Embed($"Notification channel updated.{warn}", 20);
                     });
                 }
-                else if ((bool)server.CheckIfNotifyExist(Context.Guild.Id) == false)
+                else if ((context.Notify.Any(o => o.Serverid == Context.Guild.Id)))
                 {
                     //await msgg.PinAsync();
-                    server.InsertNotify(Context.Guild.Id, channel.Id);
+                    using (var contexttt = new DatabaseContext())
+                    {
+                        Notify newnotify = new Notify();
+                        newnotify.Serverid = Context.Guild.Id;
+                        newnotify.Channelid = channel.Id;
+                        contexttt.Add(newnotify);
+                        contexttt.SaveChanges();
+                    }
                     await msg.ModifyAsync(msgProperty =>
                     {
                         msgProperty.Content = $"{Context.Message.Author.Mention}";
@@ -351,13 +363,16 @@ namespace DiscordBot
         {
             try
             {
-                string token = server.GetTokenOfServer(Context.Guild.Id);
-                string ip = server.GetIPForToken(token, 2);
+                DatabaseContext context = new DatabaseContext();
+                string token = context.Auth.AsQueryable().Where(a => a.Serverid == Context.Guild.Id).Single().Token;
+                string ip = context.Auth.AsQueryable().Where(a => a.Serverid == Context.Guild.Id).Single().IP;
                 var msg = await ReplyAsync(Context.Message.Author.Mention, false,
                     Embed("Alright give me few seconds please."));
-                if (server.CheckIfNotifyExist(Context.Guild.Id))
+                
+                if (context.Notify.Any(o => o.Serverid == Context.Guild.Id))
                 {
-                    server.RemoveNotify(Context.Guild.Id);
+                     context.Remove(context.Notify.Single(a => a.Serverid == Context.Guild.Id));
+                        context.SaveChanges();
                     if (CheckConnection(ip))
                     {
                         await Sendmsg(Context.Guild.Id, $"unsub|playerEvent");
@@ -369,7 +384,7 @@ namespace DiscordBot
                         msgProperty.Embed = Embed("Unsubscribed from player notifications successfully.", 20);
                     });
                 }
-                else if (!server.CheckIfNotifyExist(Context.Guild.Id))
+                else if (!(context.Notify.Any(o => o.Serverid == Context.Guild.Id)))
                 {
                     await msg.ModifyAsync(msgProperty =>
                     {
@@ -391,24 +406,35 @@ namespace DiscordBot
         {
             try
             {
-                string token = server.GetTokenOfServer(Context.Guild.Id);
-                string ip = server.GetIPForToken(token, 2);
+                DatabaseContext context = new DatabaseContext();
+                string token = context.Auth.AsQueryable().Where(a => a.Serverid == Context.Guild.Id).Single().Token;
+                string ip = context.Auth.AsQueryable().Where(a => a.Serverid == Context.Guild.Id).Single().IP;
                 int truefalse = check ? 1 : 0;
                 var msg = await ReplyAsync(Context.Message.Author.Mention, false,
                     Embed("Alright give me few seconds please."));
-                if (server.CheckSevent(Context.Guild.Id))
+
+
+
+
+
+                if (context.OnJoin.Any(o => o.Serverid == Context.Guild.Id && o.sevent == 1))
                 {
                     if (check)
                     {
-                        if (!server.CheckSevent(Context.Guild.Id, 1))
+                        if (!(context.OnJoin.Any(o => o.Serverid == Context.Guild.Id && o.sevent == 1)))
                         {
+                    
                             IMessageChannel chan =
-                                (IMessageChannel)Context.Guild.GetChannel((ulong)server.GetSeventCH(Context.Guild.Id, 0));
+                                (IMessageChannel)Context.Guild.GetChannel(context.OnJoin.AsQueryable().Where(a => a.Serverid == Context.Guild.Id).Single().Channelid);
                             var msgg = await chan.SendMessageAsync(null, false,
                                 Embed(
                                     "Don't remove this message, this message will be updated continuously and display the status of you Fork servers.",
                                     20));
-                            server.UpdateSEvent(Context.Guild.Id, msgg.Id, truefalse);
+
+                             var server = context.OnJoin.First(a => a.Serverid == Context.Guild.Id);
+                            server.Messageid = msgg.Id;
+                            server.sevent = truefalse;
+                        context.SaveChanges();
                             string warn = null;
                             if (CheckConnection(ip))
                             {
@@ -437,9 +463,13 @@ namespace DiscordBot
                     }
                     else if (!check)
                     {
-                        if (server.CheckSevent(Context.Guild.Id, 1))
+                        if (context.OnJoin.Any(o => o.Serverid == Context.Guild.Id && o.sevent == 1))
                         {
-                            server.UpdateSEvent(Context.Guild.Id, 0, truefalse);
+                            var server = context.OnJoin.First(a => a.Serverid == Context.Guild.Id);
+                            server.Messageid = 0;
+                            server.sevent = truefalse;
+                            context.SaveChanges();
+                         
                             if (CheckConnection(ip) == true)
                             {
                                 await Sendmsg(Context.Guild.Id, $"unsub|serverListEvent");
@@ -500,10 +530,12 @@ namespace DiscordBot
         {
             try
             {
+                DatabaseContext context = new DatabaseContext();
                 await Context.Message.DeleteAsync();
                 var msg = await ReplyAsync(Context.Message.Author.Mention, false,
                     Embed("Alright give me few seconds please."));
-                if (!server.CheckOnhold(token))
+
+                if (context.OnHold.Any(o => o.Token == token))
                 {
                     await msg.ModifyAsync(msgProperty =>
                     {
@@ -514,17 +546,27 @@ namespace DiscordBot
                                 40);
                     });
                 }
-                else if (!server.CheckAuth(token, Context.Guild.Id) && server.CheckOnhold(token))
+                else if (!context.Auth.Any(o => o.Token == token || o.Serverid == Context.Guild.Id) && context.OnHold.Any(o => o.Token == token))
                 {
                     //sorting the token goes here
                     //After connection if server replies, then its ok
-                    string ip = server.GetIPForToken(token, 1);
+
+                    string ip =  context.OnHold.AsQueryable().Where(a => a.Token ==token).Single().IP;
                     if (CheckConnection(ip)) //check if its connected
                     {
-                        server.InsertAuth(Context.Guild.Id, token, ip);
-                        server.RemoveOnhold(token);
+                           using (var ctx = new DatabaseContext())
+                        {
+                            Auth newauth = new Auth();
+                            newauth.Serverid = Context.Guild.Id;
+                            newauth.Token = token;
+                            newauth.IP = ip;
+                            ctx.Add(newauth);
+                            ctx.SaveChanges();
+                        }
+                  context.Remove(context.OnHold.Single(a => a.Token == token));
+                        context.SaveChanges();
                         await Sendmsg(Context.Guild.Id, $"status|Linked|{Context.Guild.Name}");
-                        if (!server.CheckRoleAndChannel(Context.Guild.Id))
+                        if (!context.OnJoin.Any(o => o.Serverid == Context.Guild.Id))
                         {
                             await Rec();
                         }
@@ -620,6 +662,7 @@ namespace DiscordBot
         {
             try
             {
+                DatabaseContext context = new DatabaseContext();
                 var msg = await ReplyAsync(Context.Message.Author.Mention, false,
                     Embed(
                         $"Please type `{Context.Guild.Name}` to confirm.{Environment.NewLine}Be aware this process cant be recovered.{Environment.NewLine}Type anything else to cancel."));
@@ -633,20 +676,21 @@ namespace DiscordBot
                   Embed($"Sad to see you go.., I'll leave shortly, good bye!", 20));
                     if (msgg.Value.Content == Context.Guild.Name)
                     {
-                        if (server.CheckRoleAndChannel(Context.Guild.Id))
+                        if (context.OnJoin.Any(o => o.Serverid == Context.Guild.Id))
                         {
+                             var TheEntry = context.OnJoin.AsQueryable().Where(a => a.Serverid == Context.Guild.Id).Single();
                             try
                             {
-                                if (Context.Guild.GetChannel((ulong)server.GetRoleandChannel(Context.Guild.Id, 1)) != null)
+                                if (Context.Guild.GetChannel(TheEntry.Channelid) != null)
                                 {
                                     var channel =
-                                        Context.Guild.GetChannel((ulong)server.GetRoleandChannel(Context.Guild.Id, 1));
+                                        Context.Guild.GetChannel(TheEntry.Channelid);
                                     await channel.DeleteAsync();
                                 }
 
-                                if (Context.Guild.GetRole((ulong)server.GetRoleandChannel(Context.Guild.Id, 0)) != null)
+                                if (Context.Guild.GetRole(TheEntry.Roleid) != null)
                                 {
-                                    var Role = Context.Guild.GetRole((ulong)server.GetRoleandChannel(Context.Guild.Id, 0));
+                                    var Role = Context.Guild.GetRole(TheEntry.Roleid);
                                     await Role.DeleteAsync();
                                 }
                             }
@@ -660,8 +704,12 @@ namespace DiscordBot
                         await Sendmsg(Context.Guild.Id, $"status|OnHold");
                         await Sendmsg(Context.Guild.Id, $"unsub|serverListEvent");
                         await Sendmsg(Context.Guild.Id, $"unsub|playerEvent");
-                        server.LeaveServer(Context.Guild.Id);
-                        string token = server.GetTokenOfServer(Context.Guild.Id);
+                         context.Remove(context.Auth.Single(a => a.Serverid == Context.Guild.Id));
+                        context.Remove(context.OnJoin.Single(a => a.Serverid == Context.Guild.Id));
+                        context.Remove(context.Notify.Single(a => a.Serverid == Context.Guild.Id));
+                        context.SaveChanges();
+
+                        string token = context.Auth.AsQueryable().Where(a => a.Serverid == Context.Guild.Id).Single().Token;
                         Program.AliveTokens.Remove(token);
                         try
                         {
@@ -703,16 +751,23 @@ namespace DiscordBot
         {
             try
             {
+                DatabaseContext context = new DatabaseContext();
                 var msg = await ReplyAsync(Context.Message.Author.Mention, false,
                     Embed("Alright give me few seconds please."));
-                string token = server.GetTokenOfServer(Context.Guild.Id);
-                if (server.CheckAuth(token, Context.Guild.Id))
+
+                string token = context.Auth.AsQueryable().Where(a => a.Serverid == Context.Guild.Id).Single().Token;
+
+                if (context.Auth.Any(o => o.Serverid == Context.Guild.Id || o.Token == token))
                 {
+
                     await Sendmsg(Context.Guild.Id, $"rec");
                     await Sendmsg(Context.Guild.Id, $"status|OnHold");
                     await Sendmsg(Context.Guild.Id, $"unsub|serverListEvent");
                     await Sendmsg(Context.Guild.Id, $"unsub|playerEvent");
-                    server.LeaveServer(Context.Guild.Id);
+                    context.Remove(context.Auth.Single(a => a.Serverid == Context.Guild.Id));
+                    context.Remove(context.OnJoin.Single(a => a.Serverid == Context.Guild.Id));
+                    context.Remove(context.Notify.Single(a => a.Serverid == Context.Guild.Id));
+                    context.SaveChanges();
                     Program.AliveTokens.Remove(token);
                     await msg.ModifyAsync(msgProperty =>
                     {

@@ -6,7 +6,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>DiscordBot</AssemblyName>
     <Platforms>AnyCPU;x86</Platforms>
-    <StartupObject>Program</StartupObject>
+    <StartupObject>DiscordBot.Program</StartupObject>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(ProjectDir)**\*.vb</DefaultItemExcludes>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -17,7 +17,11 @@
     <PackageReference Include="Discord.Net.WebSocket" Version="3.0.0-dev-20210710.3" />
     <PackageReference Include="Fleck" Version="1.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Core" Version="5.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
     <PackageReference Include="NLog" Version="4.7.10" />
