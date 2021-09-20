@@ -420,6 +420,10 @@ CREATE TABLE `Notify` (
         {
             insert = "UPDATE Onhold SET Token = @token WHERE IP = @ip";
         }
+        else if (CheckOnhold(token))
+        {
+            insert = "UPDATE Onhold SET IP = @ip WHERE Token = @token";
+        }
         else
         {
             insert = "INSERT INTO Onhold(Token,IP) VALUES (@token,@ip)";
