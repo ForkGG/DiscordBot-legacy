@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForkDiscordBot", "ForkDiscordBot\ForkDiscordBot.csproj", "{224AFDDB-D0C5-4744-8333-8FC465208517}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForkDiscordBotTest", "ForkDiscordBotTest\ForkDiscordBotTest.csproj", "{EAACBF7A-CDA0-4BE9-B75E-45EBDA653817}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{224AFDDB-D0C5-4744-8333-8FC465208517}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{224AFDDB-D0C5-4744-8333-8FC465208517}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{224AFDDB-D0C5-4744-8333-8FC465208517}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{224AFDDB-D0C5-4744-8333-8FC465208517}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAACBF7A-CDA0-4BE9-B75E-45EBDA653817}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAACBF7A-CDA0-4BE9-B75E-45EBDA653817}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAACBF7A-CDA0-4BE9-B75E-45EBDA653817}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAACBF7A-CDA0-4BE9-B75E-45EBDA653817}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

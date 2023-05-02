@@ -1,5 +1,9 @@
 {
-	"token": "",
-	"certPath": "cert.pfx",
-	"certPassword": ""
+    "DiscordConfig": {
+        "Token": "putYourTokenHere"
+    },
+    "SslCertConfig": {
+        "CertPath": "putThePathToYourPfxCertHere.pfx",
+        "CertPassword": "putThePasswordForTheCertHere"
+    }
 }
