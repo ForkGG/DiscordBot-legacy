@@ -1,3 +1,5 @@
+# LEGACY: This bot is not working anymore with Discord TOS updates
+
 # Fork DiscordBot
 
 This Discord Bot is used to connect a Fork instance to a Discord server for remote controlling and event updates.
